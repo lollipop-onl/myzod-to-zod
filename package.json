@@ -10,5 +10,9 @@
     "@tsconfig/node24": "^24.0.1",
     "@types/node": "^24.3.0",
     "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "prettier": "^3.6.2",
+    "ts-morph": "^26.0.0"
   }
 }
