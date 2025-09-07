@@ -334,6 +334,20 @@ describe("myzod から zod への変換", () => {
 			expect(source).toBe(expected);
 		});
 	});
+
+	// allowUnknownKeys の変換テスト
+	describe("allowUnknownKeys の変換", () => {
+		it("allowUnknownKeys を passthrough に変換する", async () => {
+			const { myzod, zodv3 } = await readFixtures("allow-unknown-keys-basic");
+			const migratedCode = convertMyzodToZodV3String(myzod);
+			const { source, expected } = await formatCode(migratedCode, zodv3);
+			expect(source).toBe(expected);
+		});
+
+		it("同じバリデーション動作を維持する", async () => {
+			await validateSchemas("allow-unknown-keys-basic");
+		});
+	});
 });
 
 async function validateSchemas(testCase: string) {

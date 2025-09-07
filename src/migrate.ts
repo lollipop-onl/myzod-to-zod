@@ -410,6 +410,9 @@ function transformMyzodReferences(sourceFile: SourceFile, myzodName: string) {
 					case "pattern":
 						expression.getNameNode().replaceWithText("regex");
 						break;
+					case "allowUnknownKeys":
+						expression.getNameNode().replaceWithText("passthrough");
+						break;
 				}
 			}
 		}

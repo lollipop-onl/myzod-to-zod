@@ -31,7 +31,7 @@ npx vitest run test/scenarios.ts
 
 The project implements t-wada TDD principles with a **Red-Green-Refactor** cycle:
 
-1. **✅ COMPLETED**: **44/44 tests passing (100% completion)**
+1. **✅ COMPLETED**: **60/60 tests passing (100% completion)**
 2. **✅ Implemented**: Complete AST-based transformations with ts-morph
 3. **✅ All Tests Active**: No more `describe.skip()` - all scenarios implemented
 4. **✅ Implementation Complete**: Full automation of myzod to zod v3 conversion
@@ -57,14 +57,14 @@ The project implements t-wada TDD principles with a **Red-Green-Refactor** cycle
 ### Migration Scope & Limitations
 
 Based on research in `reports/01_エグゼクティブサマリー.md`:
-- **🎉 100% completion achieved** (44/44 tests passing)
+- **🎉 100% completion achieved** (60/60 tests passing)
 - **✅ Target exceeded**: 100% automation achieved (beyond original 90-95% goal)
 - **✅ All challenges solved**: Type coercion, intersection types, complex literals, enums
 - **✅ Complete automation**: All supported transformation patterns now automated
 
 ### Current Implementation Status
 
-**✅ All Implemented (44/44 tests passing - 100% Complete!)**:
+**✅ All Implemented (60/60 tests passing - 100% Complete!)**:
 ```typescript
 // Import conversion
 import myzod from 'myzod' → import { z } from 'zod'
@@ -76,6 +76,7 @@ myzod.string/number/boolean/literal/object/array/union/tuple/record() → z.*()
 .withPredicate() → .refine()
 .map() → .transform()
 .pattern() → .regex()
+.allowUnknownKeys() → .passthrough()
 
 // Structural transformations: All complete
 myzod.number().coerce() → z.coerce.number()
@@ -110,7 +111,8 @@ myzod.Infer<typeof T> → z.infer<typeof T>
 - Started with 8/44 tests passing
 - Systematically removed `.skip` from test cases
 - Implemented AST transformations for each pattern
-- Achieved 100% test coverage (44/44 tests passing)
+- Added new allowUnknownKeys transformation (60/60 tests)
+- Achieved 100% test coverage (60/60 tests passing)
 
 **Implementation is now complete and ready for production use!**
 
@@ -142,7 +144,7 @@ node dist/index.js "src/**/*.ts"
 # Apply transformations
 node dist/index.js "src/**/*.ts" --write
 
-# Run all 44 tests (100% passing)
+# Run all 60 tests (100% passing)
 npm test
 
 # Type checking
@@ -157,7 +159,7 @@ npx myzod-to-zod "src/**/*.ts" --write
 🎉 **COMPLETED** - This codemod is fully implemented and ready for production use!
 
 **Key Achievements:**
-- ✅ 44/44 tests passing (100% completion)
+- ✅ 60/60 tests passing (100% completion)
 - ✅ Complete AST-based transformation engine
 - ✅ CLI tool with preview and write modes
 - ✅ Comprehensive documentation and test coverage
