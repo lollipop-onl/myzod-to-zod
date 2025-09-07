@@ -346,50 +346,83 @@ function transformTypeReferences(
 		(name) => name in MYZOD_TO_ZOD_TYPE_MAP,
 	);
 
+	// Collect transformations first to avoid node invalidation issues
+	const transformations: Array<{
+		node: Node;
+		newText: string;
+	}> = [];
+
 	for (const typeRef of typeReferences) {
-		const typeName = typeRef.getTypeName();
-
-		// Handle myzod.Infer<T> pattern
-		if (Node.isQualifiedName(typeName)) {
-			const left = typeName.getLeft();
-			const right = typeName.getRight();
-
-			if (
-				Node.isIdentifier(left) &&
-				left.getText() === "myzod" &&
-				Node.isIdentifier(right) &&
-				right.getText() === "Infer"
-			) {
-				const typeArgs = typeRef.getTypeArguments();
-				if (typeArgs.length === 1) {
-					const schemaType = typeArgs[0].getText();
-					// Replace myzod.Infer<typeof schema> with z.infer<typeof schema>
-					typeRef.replaceWithText(
-						`z.infer<typeof ${schemaType.replace(/typeof\s+/, "")}>`,
-					);
-				}
-			}
+		// Skip if node is already removed or forgotten
+		if (typeRef.wasForgotten()) {
+			continue;
 		}
-		// Handle direct type references like StringType, NumberType, etc.
-		else if (Node.isIdentifier(typeName)) {
-			const typeNameText = typeName.getText();
 
-			// Check if this is a myzod type that needs transformation
-			if (myzodTypeImports.includes(typeNameText)) {
-				const zodType = MYZOD_TO_ZOD_TYPE_MAP[typeNameText];
-				if (zodType) {
-					// Preserve type arguments if they exist
+		try {
+			const typeName = typeRef.getTypeName();
+
+			// Handle myzod.Infer<T> pattern
+			if (Node.isQualifiedName(typeName)) {
+				const left = typeName.getLeft();
+				const right = typeName.getRight();
+
+				if (
+					Node.isIdentifier(left) &&
+					left.getText() === "myzod" &&
+					Node.isIdentifier(right) &&
+					right.getText() === "Infer"
+				) {
 					const typeArgs = typeRef.getTypeArguments();
-					if (typeArgs.length > 0) {
-						const typeArgsText = typeArgs
-							.map((arg) => arg.getText())
-							.join(", ");
-						typeRef.replaceWithText(`${zodType}<${typeArgsText}>`);
-					} else {
-						typeRef.replaceWithText(zodType);
+					if (typeArgs.length === 1) {
+						const schemaType = typeArgs[0].getText();
+						// Replace myzod.Infer<typeof schema> with z.infer<typeof schema>
+						transformations.push({
+							node: typeRef,
+							newText: `z.infer<typeof ${schemaType.replace(/typeof\s+/, "")}>`,
+						});
 					}
 				}
 			}
+			// Handle direct type references like StringType, NumberType, etc.
+			else if (Node.isIdentifier(typeName)) {
+				const typeNameText = typeName.getText();
+
+				// Check if this is a myzod type that needs transformation
+				if (myzodTypeImports.includes(typeNameText)) {
+					const zodType = MYZOD_TO_ZOD_TYPE_MAP[typeNameText];
+					if (zodType) {
+						// Preserve type arguments if they exist
+						const typeArgs = typeRef.getTypeArguments();
+						if (typeArgs.length > 0) {
+							const typeArgsText = typeArgs
+								.map((arg) => arg.getText())
+								.join(", ");
+							transformations.push({
+								node: typeRef,
+								newText: `${zodType}<${typeArgsText}>`,
+							});
+						} else {
+							transformations.push({
+								node: typeRef,
+								newText: zodType,
+							});
+						}
+					}
+				}
+			}
+		} catch {
+			// Skip nodes that have become invalid during processing
+		}
+	}
+
+	// Apply transformations
+	for (const { node, newText } of transformations) {
+		try {
+			if (!node.wasForgotten()) {
+				node.replaceWithText(newText);
+			}
+		} catch {
+			// Skip nodes that have become invalid
 		}
 	}
 }
