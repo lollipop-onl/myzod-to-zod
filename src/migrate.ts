@@ -2,16 +2,43 @@ import { SourceFile, Node, SyntaxKind, CallExpression, PropertyAccessExpression,
 import { collectMyzodImportDeclarations, getMyzodName, getMyzodNamedImports, hasNamedImports, collectNamedImportReferences } from './collect-imports.js';
 import { isMyzodReference, getRootIdentifier } from './myzod-node.js';
 
+export interface ManualMigrationIssue {
+    type: 'try-method' | 'validation-error' | 'other';
+    description: string;
+    line?: number;
+    snippet?: string;
+}
+
+export interface MigrationResult {
+    content: string;
+    manualIssues: ManualMigrationIssue[];
+}
+
 /**
  * Migrates myzod code to zod v3 using AST transformations.
  */
 export function migrateMyzodToZodV3(sourceFile: SourceFile): string {
+    const result = migrateMyzodToZodV3WithIssues(sourceFile);
+    return result.content;
+}
+
+/**
+ * Migrates myzod code to zod v3 and returns both content and manual migration issues.
+ */
+export function migrateMyzodToZodV3WithIssues(sourceFile: SourceFile): MigrationResult {
     const myzodImports = collectMyzodImportDeclarations(sourceFile);
+    const manualIssues: ManualMigrationIssue[] = [];
     
     if (myzodImports.length === 0) {
         // No myzod imports found, return original content
-        return sourceFile.getFullText();
+        return {
+            content: sourceFile.getFullText(),
+            manualIssues: []
+        };
     }
+
+    // Check for manual migration issues before transformation
+    detectManualMigrationIssues(sourceFile, manualIssues);
 
     // Process each myzod import
     for (const importDeclaration of myzodImports) {
@@ -37,7 +64,10 @@ export function migrateMyzodToZodV3(sourceFile: SourceFile): string {
         transformMyzodReferences(sourceFile, myzodName);
     }
 
-    return sourceFile.getFullText();
+    return {
+        content: sourceFile.getFullText(),
+        manualIssues
+    };
 }
 
 /**
@@ -325,6 +355,104 @@ function transformMyzodReferences(sourceFile: SourceFile, myzodName: string) {
     }
 }
 
+
+/**
+ * Detects patterns that require manual migration
+ */
+function detectManualMigrationIssues(sourceFile: SourceFile, issues: ManualMigrationIssue[]) {
+    const callExpressions = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
+    
+    for (const callExpr of callExpressions) {
+        const expression = callExpr.getExpression();
+        
+        // Check for .try() method calls
+        if (Node.isPropertyAccessExpression(expression)) {
+            const methodName = expression.getName();
+            
+            if (methodName === 'try') {
+                const lineNumber = callExpr.getStartLineNumber();
+                const snippet = callExpr.getText();
+                
+                issues.push({
+                    type: 'try-method',
+                    description: 'Replace .try() with .safeParse()',
+                    line: lineNumber,
+                    snippet: snippet
+                });
+            }
+        }
+        
+        // Check for ValidationError references
+        const identifiers = callExpr.getDescendantsOfKind(SyntaxKind.Identifier);
+        for (const identifier of identifiers) {
+            if (identifier.getText() === 'ValidationError') {
+                const parent = identifier.getParent();
+                if (Node.isPropertyAccessExpression(parent)) {
+                    const rootId = getRootIdentifier(parent);
+                    if (rootId === 'myzod') {
+                        const lineNumber = identifier.getStartLineNumber();
+                        const snippet = parent.getText();
+                        
+                        issues.push({
+                            type: 'validation-error',
+                            description: 'Update ValidationError handling to use result.success pattern',
+                            line: lineNumber,
+                            snippet: snippet
+                        });
+                    }
+                }
+            }
+        }
+    }
+    
+    // Check for myzod.ValidationError in type references and instanceof checks
+    const typeReferences = sourceFile.getDescendantsOfKind(SyntaxKind.TypeReference);
+    for (const typeRef of typeReferences) {
+        const typeName = typeRef.getTypeName();
+        if (Node.isQualifiedName(typeName)) {
+            const left = typeName.getLeft();
+            const right = typeName.getRight();
+            
+            if (Node.isIdentifier(left) && left.getText() === 'myzod' && 
+                Node.isIdentifier(right) && right.getText() === 'ValidationError') {
+                
+                const lineNumber = typeRef.getStartLineNumber();
+                const snippet = typeRef.getText();
+                
+                issues.push({
+                    type: 'validation-error',
+                    description: 'Update ValidationError type references for zod error handling',
+                    line: lineNumber,
+                    snippet: snippet
+                });
+            }
+        }
+    }
+    
+    // Check for instanceof ValidationError patterns
+    const binaryExpressions = sourceFile.getDescendantsOfKind(SyntaxKind.BinaryExpression);
+    for (const binExpr of binaryExpressions) {
+        if (binExpr.getOperatorToken().getKind() === SyntaxKind.InstanceOfKeyword) {
+            const right = binExpr.getRight();
+            if (Node.isPropertyAccessExpression(right)) {
+                const rootId = getRootIdentifier(right);
+                const propName = right.getName();
+                
+                if (rootId === 'myzod' && propName === 'ValidationError') {
+                    const lineNumber = binExpr.getStartLineNumber();
+                    const snippet = binExpr.getText();
+                    
+                    issues.push({
+                        type: 'validation-error',
+                        description: 'Replace instanceof ValidationError with !result.success pattern',
+                        line: lineNumber,
+                        snippet: snippet
+                    });
+                }
+            }
+        }
+    }
+}
 
 /**
  * Convenience function for direct string transformation (used by tests)

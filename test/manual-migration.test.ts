@@ -1,0 +1,85 @@
+import { describe, it, expect } from 'vitest';
+import { migrateMyzodToZodV3WithIssues } from '../src/migrate.js';
+import { Project } from 'ts-morph';
+
+describe('Manual Migration Detection', () => {
+    function createSourceFile(code: string) {
+        const project = new Project({ useInMemoryFileSystem: true });
+        return project.createSourceFile('test.ts', code);
+    }
+
+    it('should detect .try() method calls requiring manual conversion', () => {
+        const code = `
+import myzod from 'myzod';
+
+const schema = myzod.string();
+const result = schema.try(data);
+        `;
+        
+        const sourceFile = createSourceFile(code);
+        const result = migrateMyzodToZodV3WithIssues(sourceFile);
+        
+        expect(result.manualIssues).toHaveLength(1);
+        expect(result.manualIssues[0].type).toBe('try-method');
+        expect(result.manualIssues[0].description).toBe('Replace .try() with .safeParse()');
+        expect(result.manualIssues[0].line).toBe(5);
+    });
+
+    it('should detect ValidationError instanceof checks', () => {
+        const code = `
+import myzod from 'myzod';
+
+const result = schema.try(data);
+if (result instanceof myzod.ValidationError) {
+    console.log('error');
+}
+        `;
+        
+        const sourceFile = createSourceFile(code);
+        const result = migrateMyzodToZodV3WithIssues(sourceFile);
+        
+        expect(result.manualIssues).toHaveLength(2); // .try() + instanceof
+        const validationErrorIssue = result.manualIssues.find(issue => issue.type === 'validation-error');
+        expect(validationErrorIssue).toBeDefined();
+        expect(validationErrorIssue!.description).toBe('Replace instanceof ValidationError with !result.success pattern');
+    });
+
+    it('should detect multiple manual issues in single file', () => {
+        const code = `
+import myzod from 'myzod';
+
+const schema = myzod.string();
+const result1 = schema.try(data1);
+const result2 = schema.try(data2);
+
+if (result1 instanceof myzod.ValidationError) {
+    console.log('error1');
+}
+if (result2 instanceof myzod.ValidationError) {
+    console.log('error2');
+}
+        `;
+        
+        const sourceFile = createSourceFile(code);
+        const result = migrateMyzodToZodV3WithIssues(sourceFile);
+        
+        expect(result.manualIssues).toHaveLength(4); // 2 .try() + 2 instanceof
+    });
+
+    it('should return empty issues for fully automated code', () => {
+        const code = `
+import myzod from 'myzod';
+
+const schema = myzod.string().min(1).max(50);
+const userSchema = myzod.object({
+    name: myzod.string(),
+    age: myzod.number().optional()
+});
+        `;
+        
+        const sourceFile = createSourceFile(code);
+        const result = migrateMyzodToZodV3WithIssues(sourceFile);
+        
+        expect(result.manualIssues).toHaveLength(0);
+    });
+});
