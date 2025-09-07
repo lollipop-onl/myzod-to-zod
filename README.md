@@ -9,9 +9,9 @@ This tool uses AST transformations to safely and accurately convert myzod valida
 
 ## ✨ Features
 
-- 🔄 **100% Test Coverage**: All 44 transformation patterns tested and verified
+- 🔄 **100% Test Coverage**: All 45 transformation patterns tested and verified
 - 🛡️ **AST-based**: Safe transformations that preserve code structure and comments
-- ⚡ **High Success Rate**: Converts 44/44 common myzod patterns automatically
+- ⚡ **High Success Rate**: Converts 45/45 common myzod patterns automatically
 - 🎯 **Precise**: Only transforms myzod-related code, leaves everything else untouched
 - 📚 **Well Documented**: Comprehensive guide for manual migration steps
 
@@ -124,7 +124,7 @@ type Status = z.infer<typeof statusSchema>;
 
 ## 🔧 Manual Migration Required
 
-While this codemod handles 100% of the common schema definition patterns, some areas require manual attention:
+While this codemod handles 100% of the common schema definition patterns, a few areas require manual attention:
 
 ### 1. ~~Type Inference~~ ✅ **AUTOMATED**
 
@@ -174,26 +174,7 @@ const schema = z.object({...});
 
 This transformation is now **fully automated** by the codemod. The `.collectErrors()` method is automatically removed since zod collects errors by default.
 
-### 3. Custom Predicate Error Objects
-
-**⚠️ Manual Change Required**
-
-```typescript
-// Before
-.withPredicate(val => val > 0, { 
-  code: 'custom', 
-  message: 'Must be positive' 
-})
-
-// After (manual fix needed)
-.refine(val => val > 0, { 
-  message: 'Must be positive' 
-})
-```
-
-**Why:** zod's error structure differs from myzod's custom error objects.
-
-### 4. Dictionary Types with Complex Logic
+### 3. Dictionary Types with Complex Logic
 
 **⚠️ Manual Review Recommended**
 
@@ -258,9 +239,9 @@ After running the codemod, please:
 - Report missing patterns as GitHub issues
 
 **"Type errors after migration"**
-- Update `myzod.Infer<T>` to `z.infer<typeof T>` manually
-- Review error handling patterns
+- Review error handling patterns (`.try()` → `.safeParse()`)
 - Ensure zod v3 is properly installed
+- Check for any remaining myzod imports
 
 ### Getting Help
 
@@ -292,7 +273,7 @@ myzod-to-zod/
 │   └── myzod-node.ts     # AST utilities
 ├── test/                 # Test suite
 │   ├── scenarios.ts      # Main test file
-│   └── __scenarios__/    # 44 test cases with README
+│   └── __scenarios__/    # 45 test cases with README
 └── reports/              # Documentation
 ```
 
