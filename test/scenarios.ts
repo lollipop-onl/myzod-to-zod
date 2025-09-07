@@ -325,6 +325,16 @@ describe('myzod から zod への変換', () => {
             expect(source).toBe(expected);
         });
     });
+
+    // Dictionary の変換テスト
+    describe('Dictionary の変換', () => {
+        it('dictionary をrecordに変換し適切にoptionalを処理する', async () => {
+            const { myzod, zodv3 } = await readFixtures('dictionary-basic');
+            const migratedCode = convertMyzodToZodV3String(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+    });
 });
 
 async function validateSchemas(testCase: string) {

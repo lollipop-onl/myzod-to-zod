@@ -74,6 +74,7 @@ function handleSpecialTransformations(sourceFile: SourceFile, myzodName: string)
     const literalsTransformations: { callExpr: CallExpression, args: string[] }[] = [];
     const enumTransformations: { callExpr: CallExpression, enumArg: string }[] = [];
     const collectErrorsTransformations: { callExpr: CallExpression }[] = [];
+    const dictionaryTransformations: { callExpr: CallExpression, schemaArg: string }[] = [];
     
     for (const callExpr of callExpressions) {
         const expression = callExpr.getExpression();
@@ -130,6 +131,15 @@ function handleSpecialTransformations(sourceFile: SourceFile, myzodName: string)
                 if (methodName === 'collectErrors') {
                     collectErrorsTransformations.push({ callExpr });
                 }
+                
+                // Handle dictionary transformation specially
+                if (methodName === 'dictionary') {
+                    const args = callExpr.getArguments();
+                    if (args.length === 1) {
+                        const schemaArg = args[0].getText();
+                        dictionaryTransformations.push({ callExpr, schemaArg });
+                    }
+                }
             }
         }
     }
@@ -160,6 +170,24 @@ function handleSpecialTransformations(sourceFile: SourceFile, myzodName: string)
             const baseExpression = expression.getExpression();
             callExpr.replaceWithText(baseExpression.getText());
         }
+    }
+    
+    // Apply dictionary transformations (dictionary -> record with optional handling)
+    for (const { callExpr, schemaArg } of dictionaryTransformations) {
+        // Check if the schema argument already has .optional()
+        const hasOptional = schemaArg.includes('.optional()');
+        
+        let recordArg: string;
+        if (hasOptional) {
+            // Already optional, use as-is
+            recordArg = schemaArg;
+        } else {
+            // Not optional, wrap with .optional()
+            recordArg = `${schemaArg}.optional()`;
+        }
+        
+        const newExpression = `z.record(${recordArg})`;
+        callExpr.replaceWithText(newExpression);
     }
 }
 
@@ -275,8 +303,8 @@ function transformMyzodReferences(sourceFile: SourceFile, myzodName: string) {
             if (rootId === myzodName || rootId === 'z') {
                 const methodName = expression.getName();
                 
-                // Skip coerce, literals, enum, and collectErrors - already handled in special transformations
-                if (methodName === 'coerce' || methodName === 'literals' || methodName === 'enum' || methodName === 'collectErrors') {
+                // Skip coerce, literals, enum, collectErrors, and dictionary - already handled in special transformations
+                if (methodName === 'coerce' || methodName === 'literals' || methodName === 'enum' || methodName === 'collectErrors' || methodName === 'dictionary') {
                     continue;
                 }
                 

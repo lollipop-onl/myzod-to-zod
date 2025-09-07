@@ -9,9 +9,9 @@ This tool uses AST transformations to safely and accurately convert myzod valida
 
 ## ✨ Features
 
-- 🔄 **100% Test Coverage**: All 45 transformation patterns tested and verified
+- 🔄 **100% Test Coverage**: All 46 transformation patterns tested and verified
 - 🛡️ **AST-based**: Safe transformations that preserve code structure and comments
-- ⚡ **High Success Rate**: Converts 45/45 common myzod patterns automatically
+- ⚡ **High Success Rate**: Converts 46/46 common myzod patterns automatically
 - 🎯 **Precise**: Only transforms myzod-related code, leaves everything else untouched
 - 📚 **Well Documented**: Comprehensive guide for manual migration steps
 
@@ -88,7 +88,7 @@ type Status = z.infer<typeof statusSchema>;
 
 ## 🔄 Transformation Coverage
 
-### ✅ Fully Automated (45/45 patterns)
+### ✅ Fully Automated (46/46 patterns)
 
 #### Basic Types
 - `myzod.string()` → `z.string()`
@@ -100,6 +100,7 @@ type Status = z.infer<typeof statusSchema>;
 - `myzod.union()` → `z.union()`
 - `myzod.tuple()` → `z.tuple()`
 - `myzod.record()` → `z.record()`
+- `myzod.dictionary()` → `z.record()` (with automatic `.optional()` handling)
 
 #### Constraints & Validation
 - `.min()` / `.max()` → `.min()` / `.max()`
@@ -124,7 +125,7 @@ type Status = z.infer<typeof statusSchema>;
 
 ## 🔧 Manual Migration Required
 
-While this codemod handles 100% of the common schema definition patterns, a few areas require manual attention:
+While this codemod handles 100% of the common schema definition patterns, only error handling requires manual attention:
 
 ### 1. ~~Type Inference~~ ✅ **AUTOMATED**
 
@@ -174,19 +175,19 @@ const schema = z.object({...});
 
 This transformation is now **fully automated** by the codemod. The `.collectErrors()` method is automatically removed since zod collects errors by default.
 
-### 3. Dictionary Types with Complex Logic
+### 3. ~~Dictionary Types~~ ✅ **AUTOMATED**
 
-**⚠️ Manual Review Recommended**
+**✅ Fully Automated**
 
 ```typescript
 // Before
 const schema = myzod.dictionary(myzod.string());
 
-// After (may need adjustment)
-const schema = z.record(z.string());
+// After (automatically transformed)
+const schema = z.record(z.string().optional());
 ```
 
-**Why:** Subtle behavioral differences may exist in edge cases.
+This transformation is now **fully automated** by the codemod. The `.dictionary()` method automatically handles the optional wrapping as per myzod's semantics.
 
 ## 📋 Post-Migration Checklist
 
@@ -273,7 +274,7 @@ myzod-to-zod/
 │   └── myzod-node.ts     # AST utilities
 ├── test/                 # Test suite
 │   ├── scenarios.ts      # Main test file
-│   └── __scenarios__/    # 45 test cases with README
+│   └── __scenarios__/    # 46 test cases with README
 └── reports/              # Documentation
 ```
 
