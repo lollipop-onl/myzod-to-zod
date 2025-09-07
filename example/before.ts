@@ -1,25 +1,30 @@
-import { z } from 'zod';
+import myzod, { string, literals, type Infer } from 'myzod';
 
 // 基本型
-const userSchema = z.object({
-  name: z.string().min(1).max(50),
-  email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/),
-  age: z.number().min(0).max(150).optional(),
-  isActive: z.boolean().default(true),
-});
+const userSchema = myzod.object({
+  name: string().min(1).max(50),
+  email: string().pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/),
+  age: myzod.number().min(0).max(150).optional(),
+  isActive: myzod.boolean().default(true),
+}).collectErrors();
 
 // 複雑な変換パターン
-const statusSchema = z.union([z.literal("active"), z.literal("inactive"), z.literal("pending")]);
-const coerceSchema = z.coerce.number();
+const statusSchema = literals("active", "inactive", "pending");
+const coerceSchema = myzod.number().coerce();
 
 // カスタムバリデーション
-const validatedSchema = z.string().refine(
+const validatedSchema = string().withPredicate(
   s => s.length > 0,
   'String must not be empty'
 );
 
+string().withPredicate(
+    s => s.length > 0,
+    'String must not be empty'
+);
+
 // 値変換
-const transformSchema = z.string().transform(s => s.toUpperCase());
+const transformSchema = string().map(s => s.toUpperCase());
 
 // TypeScript enum
 enum Color {
@@ -27,8 +32,8 @@ enum Color {
   Green = 'green',
   Blue = 'blue'
 }
-const enumSchema = z.nativeEnum(Color);
+const enumSchema = myzod.enum(Color);
 
 // 型推論
-type User = z.infer<typeof userSchema>;
-type Status = z.infer<typeof statusSchema>;
+type User = Infer<typeof userSchema>;
+type Status = Infer<typeof statusSchema>;
