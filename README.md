@@ -2,7 +2,7 @@
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/lollipop-onl/myzod-to-zod)
 
-[![npm version](https://img.shields.io/npm/v/myzod-to-zod.svg)](https://www.npmjs.com/package/myzod-to-zod)
+[![npm version](https://img.shields.io/npm/v/@lollipop-onl/myzod-to-zod.svg)](https://www.npmjs.com/package/@lollipop-onl/myzod-to-zod)
 [![Tests](https://github.com/lollipop-onl/myzod-to-zod/workflows/Tests/badge.svg)](https://github.com/lollipop-onl/myzod-to-zod/actions)
 
 A codemod to automatically migrate your codebase from [myzod](https://github.com/davidmdm/myzod) to [zod v3](https://github.com/colinhacks/zod).
@@ -21,21 +21,21 @@ This tool uses AST transformations to safely and accurately convert myzod valida
 
 ### Interactive CLI (Recommended)
 ```bash
-npx myzod-to-zod
+npx @lollipop-onl/myzod-to-zod
 ```
 
 ### Non-interactive CLI
 ```bash
 # Preview changes (dry run)
-npx myzod-to-zod "src/**/*.ts"
+npx @lollipop-onl/myzod-to-zod "src/**/*.ts"
 
 # Apply transformations
-npx myzod-to-zod "src/**/*.ts" --write
+npx @lollipop-onl/myzod-to-zod "src/**/*.ts" --write
 ```
 
 ### Install as Package
 ```bash
-npm install -D myzod-to-zod
+npm install -D @lollipop-onl/myzod-to-zod
 ```
 
 ## 📖 Example
@@ -190,7 +190,7 @@ After running the codemod, please:
    ```
 3. **Run the codemod**:
    ```bash
-   npx myzod-to-zod "src/**/*.ts" --write
+   npx @lollipop-onl/myzod-to-zod "src/**/*.ts" --write
    ```
 4. **Follow the manual migration steps** above
 5. **Remove myzod**:
@@ -224,7 +224,7 @@ After running the codemod, please:
 
 1. Check the [manual migration guide](#-manual-migration-required) above
 2. Review the [troubleshooting section](#-troubleshooting)
-3. [Open an issue](https://github.com/simochee/myzod-to-zod/issues) with a minimal reproduction
+3. [Open an issue](https://github.com/lollipop-onl/myzod-to-zod/issues) with a minimal reproduction
 
 ## 🧪 Development
 
@@ -294,4 +294,4 @@ MIT License. See [LICENSE](./LICENSE) for details.
 
 ---
 
-**Need help?** [Open an issue](https://github.com/simochee/myzod-to-zod/issues) or check our [troubleshooting guide](#-troubleshooting).
+**Need help?** [Open an issue](https://github.com/lollipop-onl/myzod-to-zod/issues) or check our [troubleshooting guide](#-troubleshooting).

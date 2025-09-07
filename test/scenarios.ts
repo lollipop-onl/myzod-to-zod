@@ -345,7 +345,11 @@ async function validateSchemas(testCase: string) {
 	const zodv3Schema = zodv3Module.schema;
 
 	// データをテストするヘルパー関数
-	const testData = (data: any, shouldSucceed: boolean, _dataName: string) => {
+	const testData = (
+		data: unknown,
+		shouldSucceed: boolean,
+		_dataName: string,
+	) => {
 		const myzodResult = myzodSchema.try(data);
 		const zodv3Result = zodv3Schema.safeParse(data);
 

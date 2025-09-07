@@ -1,30 +1,32 @@
 {
-	"name": "myzod-to-zod",
+	"name": "@lollipop-onl/myzod-to-zod",
 	"version": "0.1.0",
-	"private": true,
 	"description": "A codemod to migrate from myzod to zod v3",
 	"homepage": "https://github.com/lollipop-onl/myzod-to-zod#readme",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/lollipop-onl/myzod-to-zod.git"
-	},
+	"repository": "lollipop-onl/myzod-to-zod",
 	"license": "MIT",
 	"type": "module",
 	"exports": {
-		".": "./dist/index.js"
+		"types": "./dist/index.d.mts",
+		"default": "./dist/index.mjs",
+		"require": "./dist/index.cjs"
 	},
-	"main": "./dist/index.js",
-	"bin": {
-		"myzod-to-zod": "./dist/index.js"
-	},
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.mjs",
+	"bin": "./dist/cli.mjs",
+	"files": [
+		"dist"
+	],
 	"scripts": {
-		"build": "tsc",
-		"lint": "biome check --write --unsafe .",
+		"build": "unbuild",
+		"lint": "biome check .",
+		"start": "tsx src/cli.ts",
 		"test": "vitest run",
 		"test:watch": "vitest watch",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"citty": "^0.1.6",
 		"myzod": "^1.12.1",
 		"prettier": "^3.6.2",
 		"ts-morph": "^26.0.0",
@@ -34,7 +36,9 @@
 		"@biomejs/biome": "^2.2.3",
 		"@tsconfig/node24": "^24.0.1",
 		"@types/node": "^24.3.0",
+		"tsx": "^4.20.5",
 		"typescript": "^5.6.3",
+		"unbuild": "^3.6.1",
 		"vitest": "^3.2.4"
 	}
 }

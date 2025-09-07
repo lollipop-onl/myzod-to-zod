@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import * as fs from "node:fs";
+import { writeFile } from "node:fs/promises";
 import { Project } from "ts-morph";
 import {
 	type ManualMigrationIssue,
@@ -10,18 +10,7 @@ import {
 /**
  * Main entry point for the myzod-to-zod codemod
  */
-async function main() {
-	const args = process.argv.slice(2);
-
-	if (args.length === 0) {
-		console.error("Usage: myzod-to-zod <file-pattern> [--write]");
-		console.error('Example: myzod-to-zod "src/**/*.ts" --write');
-		process.exit(1);
-	}
-
-	const pattern = args[0];
-	const shouldWrite = args.includes("--write");
-
+export const codemod = async (pattern: string, shouldWrite: boolean) => {
 	try {
 		const project = new Project();
 		project.addSourceFilesAtPaths(pattern);
@@ -53,7 +42,7 @@ async function main() {
 			}
 
 			if (shouldWrite) {
-				fs.writeFileSync(filePath, result.content, "utf-8");
+				await writeFile(filePath, result.content, "utf-8");
 				console.log(`✅ Updated: ${filePath}`);
 			} else {
 				// Check if content changed
@@ -77,12 +66,7 @@ async function main() {
 		console.error("Error during migration:", error);
 		process.exit(1);
 	}
-}
-
-// Check if this module is being run directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-	main().catch(console.error);
-}
+};
 
 interface FileWithIssues {
 	filePath: string;

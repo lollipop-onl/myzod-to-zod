@@ -1,5 +1,6 @@
 import {
 	type CallExpression,
+	type ImportDeclaration,
 	Node,
 	Project,
 	type SourceFile,
@@ -87,7 +88,7 @@ export function migrateMyzodToZodV3WithIssues(
 /**
  * Transforms myzod import statement to zod import
  */
-function transformImportStatement(importDeclaration: any) {
+function transformImportStatement(importDeclaration: ImportDeclaration) {
 	// Change module specifier from 'myzod' to 'zod'
 	importDeclaration.setModuleSpecifier("zod");
 
