@@ -1,5 +1,5 @@
 import { SourceFile, Node, SyntaxKind, CallExpression, PropertyAccessExpression, Project } from 'ts-morph';
-import { collectMyzodImportDeclarations, getMyzodName } from './collect-imports.js';
+import { collectMyzodImportDeclarations, getMyzodName, getMyzodNamedImports, hasNamedImports, collectNamedImportReferences } from './collect-imports.js';
 import { isMyzodReference, getRootIdentifier } from './myzod-node.js';
 
 /**
@@ -16,6 +16,8 @@ export function migrateMyzodToZodV3(sourceFile: SourceFile): string {
     // Process each myzod import
     for (const importDeclaration of myzodImports) {
         const myzodName = getMyzodName(importDeclaration);
+        const namedImports = getMyzodNamedImports(importDeclaration);
+        const hasNamed = hasNamedImports(importDeclaration);
         
         // Transform import statement
         transformImportStatement(importDeclaration);
@@ -23,8 +25,13 @@ export function migrateMyzodToZodV3(sourceFile: SourceFile): string {
         // First handle special transformations that require structural changes
         handleSpecialTransformations(sourceFile, myzodName);
         
+        // Handle named imports transformations
+        if (hasNamed) {
+            handleNamedImportTransformations(sourceFile, namedImports);
+        }
+        
         // Transform type references
-        transformTypeReferences(sourceFile);
+        transformTypeReferences(sourceFile, namedImports);
         
         // Then transform basic myzod references in the file
         transformMyzodReferences(sourceFile, myzodName);
@@ -40,12 +47,20 @@ function transformImportStatement(importDeclaration: any) {
     // Change module specifier from 'myzod' to 'zod'
     importDeclaration.setModuleSpecifier('zod');
     
-    // Change default import to named import { z }
+    // Remove all existing imports (default and named)
     const defaultImport = importDeclaration.getDefaultImport();
     if (defaultImport) {
         importDeclaration.removeDefaultImport();
-        importDeclaration.addNamedImport('z');
     }
+    
+    // Remove all named imports
+    const namedImports = importDeclaration.getNamedImports();
+    for (const namedImport of namedImports) {
+        namedImport.remove();
+    }
+    
+    // Add only { z } as named import
+    importDeclaration.addNamedImport('z');
 }
 
 /**
@@ -134,9 +149,64 @@ function handleSpecialTransformations(sourceFile: SourceFile, myzodName: string)
 }
 
 /**
+ * Handles transformations for named imports from myzod
+ */
+function handleNamedImportTransformations(sourceFile: SourceFile, namedImports: string[]) {
+    const references = collectNamedImportReferences(sourceFile, namedImports);
+    
+    for (const { name, nodes } of references) {
+        for (const node of nodes) {
+            const parent = node.getParent();
+            
+            // Handle function calls like string(), literals(), etc.
+            if (Node.isCallExpression(parent) && parent.getExpression() === node) {
+                switch (name) {
+                    case 'string':
+                    case 'number':
+                    case 'boolean':
+                    case 'object':
+                    case 'array':
+                    case 'union':
+                    case 'tuple':
+                    case 'record':
+                    case 'literal':
+                        // Basic types: string() -> z.string()
+                        node.replaceWithText(`z.${name}`);
+                        break;
+                    case 'literals':
+                        // Handle literals specially - transform to union of literals
+                        const literalsCall = parent as CallExpression;
+                        const args = literalsCall.getArguments();
+                        const literalValues = args.map(arg => {
+                            if (Node.isStringLiteral(arg)) {
+                                return `"${arg.getLiteralValue()}"`;
+                            }
+                            return arg.getText();
+                        });
+                        const literalUnions = literalValues.map(val => `z.literal(${val})`).join(', ');
+                        literalsCall.replaceWithText(`z.union([${literalUnions}])`);
+                        break;
+                }
+            }
+            
+            // Handle type references like Infer<T>
+            else if (Node.isTypeReference(parent) && parent.getTypeName() === node) {
+                if (name === 'Infer') {
+                    const typeArgs = parent.getTypeArguments();
+                    if (typeArgs.length === 1) {
+                        const schemaType = typeArgs[0].getText();
+                        parent.replaceWithText(`z.infer<typeof ${schemaType.replace(/typeof\s+/, '')}>`);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
  * Transforms type references: myzod.Infer<T> -> z.infer<typeof T>
  */
-function transformTypeReferences(sourceFile: SourceFile) {
+function transformTypeReferences(sourceFile: SourceFile, namedImports: string[] = []) {
     const typeReferences = sourceFile.getDescendantsOfKind(SyntaxKind.TypeReference);
     
     for (const typeRef of typeReferences) {

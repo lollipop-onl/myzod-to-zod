@@ -298,6 +298,23 @@ describe('myzod から zod への変換', () => {
             await validateSchemas('enum-basic');
         });
     });
+
+    // Named importsのテスト
+    describe('Named imports の変換', () => {
+        it('基本的なnamed importsを変換する', async () => {
+            const { myzod, zodv3 } = await readFixtures('named-imports-basic');
+            const migratedCode = convertMyzodToZodV3String(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('Mixed imports (default + named) を変換する', async () => {
+            const { myzod, zodv3 } = await readFixtures('named-imports-mixed');
+            const migratedCode = convertMyzodToZodV3String(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+    });
 });
 
 async function validateSchemas(testCase: string) {
