@@ -52,7 +52,7 @@ describe('myzod to zod conversion', () => {
         });
     });
     
-    describe.skip('basic-boolean conversion', () => {
+    describe('basic-boolean conversion', () => {
         it('should convert basic boolean schema', async () => {
             const { myzod, zodv3 } = await readFixtures('basic-boolean');
             const migratedCode = convertMyzodToZodV3String(myzod);
@@ -65,7 +65,7 @@ describe('myzod to zod conversion', () => {
         });
     });
     
-    describe.skip('basic-literal conversion', () => {
+    describe('basic-literal conversion', () => {
         it('should convert basic literal schema', async () => {
             const { myzod, zodv3 } = await readFixtures('basic-literal');
             const migratedCode = convertMyzodToZodV3String(myzod);
@@ -78,7 +78,7 @@ describe('myzod to zod conversion', () => {
         });
     });
     
-    describe.skip('basic-object conversion', () => {
+    describe('basic-object conversion', () => {
         it('should convert basic object schema', async () => {
             const { myzod, zodv3 } = await readFixtures('basic-object');
             const migratedCode = convertMyzodToZodV3String(myzod);
@@ -91,7 +91,7 @@ describe('myzod to zod conversion', () => {
         });
     });
     
-    describe.skip('basic-array conversion', () => {
+    describe('basic-array conversion', () => {
         it('should convert basic array schema', async () => {
             const { myzod, zodv3 } = await readFixtures('basic-array');
             const migratedCode = convertMyzodToZodV3String(myzod);
@@ -117,7 +117,7 @@ describe('myzod to zod conversion', () => {
         });
     });
     
-    describe.skip('union-basic conversion', () => {
+    describe('union-basic conversion', () => {
         it('should convert union schema', async () => {
             const { myzod, zodv3 } = await readFixtures('union-basic');
             const migratedCode = convertMyzodToZodV3String(myzod);
@@ -130,7 +130,7 @@ describe('myzod to zod conversion', () => {
         });
     });
     
-    describe.skip('tuple-basic conversion', () => {
+    describe('tuple-basic conversion', () => {
         it('should convert tuple schema', async () => {
             const { myzod, zodv3 } = await readFixtures('tuple-basic');
             const migratedCode = convertMyzodToZodV3String(myzod);
@@ -143,7 +143,7 @@ describe('myzod to zod conversion', () => {
         });
     });
     
-    describe.skip('record-basic conversion', () => {
+    describe('record-basic conversion', () => {
         it('should convert record schema', async () => {
             const { myzod, zodv3 } = await readFixtures('record-basic');
             const migratedCode = convertMyzodToZodV3String(myzod);
@@ -156,7 +156,7 @@ describe('myzod to zod conversion', () => {
         });
     });
     
-    describe.skip('string-min-max conversion', () => {
+    describe('string-min-max conversion', () => {
         it('should convert string with min/max constraints', async () => {
             const { myzod, zodv3 } = await readFixtures('string-min-max');
             const migratedCode = convertMyzodToZodV3String(myzod);
@@ -169,7 +169,7 @@ describe('myzod to zod conversion', () => {
         });
     });
     
-    describe.skip('string-pattern conversion', () => {
+    describe('string-pattern conversion', () => {
         it('should convert string with pattern', async () => {
             const { myzod, zodv3 } = await readFixtures('string-pattern');
             const migratedCode = convertMyzodToZodV3String(myzod);
@@ -182,7 +182,7 @@ describe('myzod to zod conversion', () => {
         });
     });
     
-    describe.skip('string-default conversion', () => {
+    describe('string-default conversion', () => {
         it('should convert string with default value', async () => {
             const { myzod, zodv3 } = await readFixtures('string-default');
             const migratedCode = convertMyzodToZodV3String(myzod);
@@ -195,7 +195,7 @@ describe('myzod to zod conversion', () => {
         });
     });
     
-    describe.skip('optional-basic conversion', () => {
+    describe('optional-basic conversion', () => {
         it('should convert optional schema', async () => {
             const { myzod, zodv3 } = await readFixtures('optional-basic');
             const migratedCode = convertMyzodToZodV3String(myzod);
@@ -208,7 +208,7 @@ describe('myzod to zod conversion', () => {
         });
     });
     
-    describe.skip('nullable-basic conversion', () => {
+    describe('nullable-basic conversion', () => {
         it('should convert nullable schema', async () => {
             const { myzod, zodv3 } = await readFixtures('nullable-basic');
             const migratedCode = convertMyzodToZodV3String(myzod);
@@ -234,7 +234,7 @@ describe('myzod to zod conversion', () => {
         });
     });
     
-    describe.skip('object-partial conversion', () => {
+    describe('object-partial conversion', () => {
         it('should convert partial object', async () => {
             const { myzod, zodv3 } = await readFixtures('object-partial');
             const migratedCode = convertMyzodToZodV3String(myzod);
@@ -247,7 +247,7 @@ describe('myzod to zod conversion', () => {
         });
     });
     
-    describe.skip('array-min-max conversion', () => {
+    describe('array-min-max conversion', () => {
         it('should convert array with min/max constraints', async () => {
             const { myzod, zodv3 } = await readFixtures('array-min-max');
             const migratedCode = convertMyzodToZodV3String(myzod);

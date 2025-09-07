@@ -79,6 +79,9 @@ function transformMyzodReferences(sourceFile: SourceFile, myzodName: string) {
                     case 'map':
                         expression.getNameNode().replaceWithText('transform');
                         break;
+                    case 'pattern':
+                        expression.getNameNode().replaceWithText('regex');
+                        break;
                 }
             }
         }
