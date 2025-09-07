@@ -20,7 +20,10 @@ export function migrateMyzodToZodV3(sourceFile: SourceFile): string {
         // Transform import statement
         transformImportStatement(importDeclaration);
         
-        // Transform all myzod references in the file
+        // First handle special transformations that require structural changes
+        handleSpecialTransformations(sourceFile, myzodName);
+        
+        // Then transform basic myzod references in the file
         transformMyzodReferences(sourceFile, myzodName);
     }
 
@@ -43,6 +46,54 @@ function transformImportStatement(importDeclaration: any) {
 }
 
 /**
+ * Handles special transformations that require structural changes
+ */
+function handleSpecialTransformations(sourceFile: SourceFile, myzodName: string) {
+    const callExpressions = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
+    
+    // Collect coerce transformations first to avoid issues with node invalidation
+    const coerceTransformations: { callExpr: CallExpression, typeName: string }[] = [];
+    
+    for (const callExpr of callExpressions) {
+        const expression = callExpr.getExpression();
+        
+        if (Node.isPropertyAccessExpression(expression)) {
+            const rootId = getRootIdentifier(expression);
+            
+            // Only transform if it's part of a myzod chain
+            if (rootId === myzodName) {
+                const methodName = expression.getName();
+                
+                // Handle coerce transformation specially
+                if (methodName === 'coerce') {
+                    const baseExpression = expression.getExpression();
+                    
+                    // Check if base expression is a call expression (like myzod.number())
+                    if (Node.isCallExpression(baseExpression)) {
+                        const baseCallExpression = baseExpression.getExpression();
+                        
+                        if (Node.isPropertyAccessExpression(baseCallExpression)) {
+                            const typeName = baseCallExpression.getName(); // e.g., 'number'
+                            const rootExpression = baseCallExpression.getExpression(); // e.g., 'myzod'
+                            
+                            if (Node.isIdentifier(rootExpression) && rootExpression.getText() === myzodName) {
+                                coerceTransformations.push({ callExpr, typeName });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // Apply coerce transformations
+    for (const { callExpr, typeName } of coerceTransformations) {
+        const newExpression = `z.coerce.${typeName}()`;
+        callExpr.replaceWithText(newExpression);
+    }
+}
+
+/**
  * Transforms all myzod references to zod in the source file
  */
 function transformMyzodReferences(sourceFile: SourceFile, myzodName: string) {
@@ -60,7 +111,7 @@ function transformMyzodReferences(sourceFile: SourceFile, myzodName: string) {
         }
     }
     
-    // Transform method calls (.withPredicate -> .refine, .map -> .transform)
+    // Transform method calls (.withPredicate -> .refine, .map -> .transform, .coerce -> z.coerce.type)
     for (const callExpr of callExpressions) {
         const expression = callExpr.getExpression();
         
@@ -70,6 +121,11 @@ function transformMyzodReferences(sourceFile: SourceFile, myzodName: string) {
             // Only transform if it's part of a myzod chain
             if (rootId === myzodName || rootId === 'z') {
                 const methodName = expression.getName();
+                
+                // Skip coerce - already handled in special transformations
+                if (methodName === 'coerce') {
+                    continue;
+                }
                 
                 // Transform method names
                 switch (methodName) {
@@ -87,6 +143,7 @@ function transformMyzodReferences(sourceFile: SourceFile, myzodName: string) {
         }
     }
 }
+
 
 /**
  * Convenience function for direct string transformation (used by tests)

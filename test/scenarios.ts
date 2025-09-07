@@ -221,7 +221,7 @@ describe('myzod から zod への変換', () => {
         });
     });
     
-    describe.skip('数値強制変換', () => {
+    describe('数値強制変換', () => {
         it('数値強制を変換する', async () => {
             const { myzod, zodv3 } = await readFixtures('number-coerce');
             const migratedCode = convertMyzodToZodV3String(myzod);
