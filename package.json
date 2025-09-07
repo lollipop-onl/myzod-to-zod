@@ -22,7 +22,7 @@
 	"scripts": {
 		"build": "unbuild",
 		"lint": "biome check .",
-		"publish": "semantic-release",
+		"release": "semantic-release",
 		"start": "tsx src/cli.ts",
 		"test": "vitest run",
 		"test:watch": "vitest watch",
