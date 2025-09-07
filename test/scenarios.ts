@@ -348,6 +348,59 @@ describe("myzod から zod への変換", () => {
 			await validateSchemas("allow-unknown-keys-basic");
 		});
 	});
+
+	// TDD: 型変換テストケース - 実装までは失敗するべき
+	describe("StringType型注釈の変換", () => {
+		it("StringType型注釈をZodStringに変換する", async () => {
+			const { myzod, zodv3 } = await readFixtures("type-string-basic");
+			const migratedCode = convertMyzodToZodV3String(myzod);
+			const { source, expected } = await formatCode(migratedCode, zodv3);
+			expect(source).toBe(expected);
+		});
+
+		it("同じバリデーション動作を維持する", async () => {
+			await validateSchemas("type-string-basic");
+		});
+	});
+
+	describe("NumberType型注釈の変換", () => {
+		it("NumberType型注釈をZodNumberに変換する", async () => {
+			const { myzod, zodv3 } = await readFixtures("type-number-basic");
+			const migratedCode = convertMyzodToZodV3String(myzod);
+			const { source, expected } = await formatCode(migratedCode, zodv3);
+			expect(source).toBe(expected);
+		});
+
+		it("同じバリデーション動作を維持する", async () => {
+			await validateSchemas("type-number-basic");
+		});
+	});
+
+	describe("ObjectType型注釈の変換", () => {
+		it("ObjectType型注釈をZodObjectに変換する", async () => {
+			const { myzod, zodv3 } = await readFixtures("type-object-basic");
+			const migratedCode = convertMyzodToZodV3String(myzod);
+			const { source, expected } = await formatCode(migratedCode, zodv3);
+			expect(source).toBe(expected);
+		});
+
+		it("同じバリデーション動作を維持する", async () => {
+			await validateSchemas("type-object-basic");
+		});
+	});
+
+	describe("基底Type<T>型注釈の変換", () => {
+		it("Type<T>型注釈をZodType<T>に変換する", async () => {
+			const { myzod, zodv3 } = await readFixtures("type-base-generic");
+			const migratedCode = convertMyzodToZodV3String(myzod);
+			const { source, expected } = await formatCode(migratedCode, zodv3);
+			expect(source).toBe(expected);
+		});
+
+		it("同じバリデーション動作を維持する", async () => {
+			await validateSchemas("type-base-generic");
+		});
+	});
 });
 
 async function validateSchemas(testCase: string) {

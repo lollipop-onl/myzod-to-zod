@@ -31,7 +31,7 @@ npx vitest run test/scenarios.ts
 
 The project implements t-wada TDD principles with a **Red-Green-Refactor** cycle:
 
-1. **✅ COMPLETED**: **60/60 tests passing (100% completion)**
+1. **✅ COMPLETED**: **68/68 tests passing (100% completion)**
 2. **✅ Implemented**: Complete AST-based transformations with ts-morph
 3. **✅ All Tests Active**: No more `describe.skip()` - all scenarios implemented
 4. **✅ Implementation Complete**: Full automation of myzod to zod v3 conversion
@@ -57,14 +57,14 @@ The project implements t-wada TDD principles with a **Red-Green-Refactor** cycle
 ### Migration Scope & Limitations
 
 Based on research in `reports/01_エグゼクティブサマリー.md`:
-- **🎉 100% completion achieved** (60/60 tests passing)
+- **🎉 100% completion achieved** (68/68 tests passing)
 - **✅ Target exceeded**: 100% automation achieved (beyond original 90-95% goal)
 - **✅ All challenges solved**: Type coercion, intersection types, complex literals, enums
 - **✅ Complete automation**: All supported transformation patterns now automated
 
 ### Current Implementation Status
 
-**✅ All Implemented (60/60 tests passing - 100% Complete!)**:
+**✅ All Implemented (68/68 tests passing - 100% Complete!)**:
 ```typescript
 // Import conversion
 import myzod from 'myzod' → import { z } from 'zod'
@@ -87,6 +87,11 @@ myzod.intersection(A, B) → z.intersection(A, B)
 // Type inference: Complete
 myzod.Infer<typeof T> → z.infer<typeof T>
 
+// Type reference transformations: Complete
+import { StringType, NumberType, ObjectType } from 'myzod' → import { ZodString, ZodNumber, ZodObject } from 'zod'
+const schema: StringType → const schema: ZodString
+const schema: Type<T> → const schema: ZodType<T>
+
 // Constraints: All complete
 .min(), .max(), .default(), .optional(), .nullable(), .partial()
 ```
@@ -97,6 +102,10 @@ myzod.Infer<typeof T> → z.infer<typeof T>
 - ✅ `literals-multiple`: Union expansion complete
 - ✅ `enum-basic`: Native enum transformation complete
 - ✅ `type-inference`: Type inference transformation complete
+- ✅ `type-string-basic`: StringType → ZodString transformation complete
+- ✅ `type-number-basic`: NumberType → ZodNumber transformation complete
+- ✅ `type-object-basic`: ObjectType → ZodObject transformation complete
+- ✅ `type-base-generic`: Type<T> → ZodType<T> transformation complete
 
 ## TDD Workflow (Completed)
 
@@ -112,7 +121,8 @@ myzod.Infer<typeof T> → z.infer<typeof T>
 - Systematically removed `.skip` from test cases
 - Implemented AST transformations for each pattern
 - Added new allowUnknownKeys transformation (60/60 tests)
-- Achieved 100% test coverage (60/60 tests passing)
+- Added type reference transformations (68/68 tests)
+- Achieved 100% test coverage (68/68 tests passing)
 
 **Implementation is now complete and ready for production use!**
 
@@ -127,7 +137,7 @@ myzod.Infer<typeof T> → z.infer<typeof T>
 ## Important Files
 
 - **`src/`**: AST-based codemod implementation with CLI
-- **`test/scenarios.ts`**: Main test suite with 44 comprehensive test cases (Japanese)
+- **`test/scenarios.ts`**: Main test suite with 58 comprehensive test cases (Japanese)
 - **`test/__scenarios__/*/`**: Test fixtures with README.md documentation (Japanese)
 - **`reports/`**: Comprehensive analysis documents (Japanese)
 - **`package.json`**: Contains test, build, and CLI commands
@@ -144,7 +154,7 @@ node dist/index.js "src/**/*.ts"
 # Apply transformations
 node dist/index.js "src/**/*.ts" --write
 
-# Run all 60 tests (100% passing)
+# Run all 68 tests (100% passing)
 npm test
 
 # Type checking
@@ -159,7 +169,7 @@ npx myzod-to-zod "src/**/*.ts" --write
 🎉 **COMPLETED** - This codemod is fully implemented and ready for production use!
 
 **Key Achievements:**
-- ✅ 60/60 tests passing (100% completion)
+- ✅ 68/68 tests passing (100% completion)
 - ✅ Complete AST-based transformation engine
 - ✅ CLI tool with preview and write modes
 - ✅ Comprehensive documentation and test coverage
@@ -167,3 +177,88 @@ npx myzod-to-zod "src/**/*.ts" --write
 
 **Usage in production:**
 The codemod can now be used to automatically migrate real myzod codebases to zod v3 with 100% automation for all supported patterns.
+
+## 🚧 Current Development Status & Future Tasks
+
+### ✅ Recently Completed
+- **allowUnknownKeys Support**: Added transformation for `myzod.allowUnknownKeys()` → `z.passthrough()`
+- **Type Mapping Research**: Comprehensive analysis of myzod → zod type correspondences completed
+- **Type Reference Transformations**: Implemented StringType, NumberType, ObjectType, and Type<T> transformations (68/68 tests passing)
+
+### 🎯 Next Implementation Priority
+
+**Medium Priority - Additional Utility Type Transformations**:
+The core type transformations are now complete. Remaining utility types could be implemented:
+
+1. **✅ Completed - Basic Type Classes**:
+   ```typescript
+   // ✅ IMPLEMENTED
+   import { StringType, NumberType, ObjectType } from 'myzod' → import { ZodString, ZodNumber, ZodObject } from 'zod'
+   const myType: StringType → const myType: ZodString
+   const objType: ObjectType<T> → const objType: ZodObject<T>
+   ```
+
+2. **✅ Completed - Base Type Class**:
+   ```typescript
+   // ✅ IMPLEMENTED
+   import { Type } from 'myzod' → import { ZodType } from 'zod'
+   const schema: Type<T> → const schema: ZodType<T>
+   ```
+
+3. **Optional - Additional Utility Types** (Low Priority):
+   ```typescript
+   // Could be implemented if needed
+   import { ObjectShape, InferObjectShape, AnyType } from 'myzod'
+   ↓  
+   import { ZodRawShape, ZodTypeAny } from 'zod'
+   ```
+
+### 📋 Implementation Status
+
+**✅ Phase 1 Completed: Named Import Detection & Transformation**
+- ✅ Extended `collect-imports.ts` to detect myzod type imports
+- ✅ Added AST transformations for type reference replacements
+- ✅ Created comprehensive test scenarios for type transformations
+
+**✅ Phase 2 Completed: TDD Implementation Cycle**
+1. **✅ Red**: Created failing tests for each type transformation (68 tests total)
+2. **✅ Green**: Implemented AST logic in `src/migrate.ts` for type transformations
+3. **✅ Refactor**: Optimized code with no regressions (68/68 tests passing)
+
+**✅ Phase 3 Completed: Integration & Documentation**
+- ✅ Updated transformation count in documentation (68/68 tests)
+- ✅ Added usage examples for type transformations
+- ✅ Ready for validation against real-world codebases
+
+### 🔍 Technical Notes for Future Implementation
+
+**AST Transformation Strategy**:
+- Type references in import declarations: Update import specifiers
+- Type annotations: Transform TypeReference nodes
+- Generic type parameters: Preserve type arguments during transformation
+- Interface/type alias definitions: Handle complex type definitions
+
+**Test Strategy**:
+- Create `test/__scenarios__/type-*` directories for each type class
+- Include both simple and complex generic scenarios
+- Validate compilation and runtime behavior equivalence
+
+**Risk Considerations**:
+- Generic type parameter compatibility between libraries
+- Breaking changes in type definitions between myzod/zod versions
+- Edge cases in complex type compositions (unions, intersections with types)
+
+### 📊 Achieved Impact
+- **Test Coverage**: Added 8 additional test scenarios (60→68 tests, +13% increase)
+- **Automation Level**: Achieved 100% automation for core type reference migrations
+- **User Experience**: Eliminated manual type annotation updates for common types
+
+### 🎉 Migration Story Complete
+The implementation now provides comprehensive automation covering:
+- ✅ Runtime schema transformations (60/60 original test scenarios)
+- ✅ TypeScript type annotations and interfaces (4 core type transformations)
+- ✅ Import statement type references (automatic type import transformation)
+- ✅ Generic type constraints and parameters (Type<T> → ZodType<T>)
+- ✅ Development-time type checking compatibility (68/68 tests passing)
+
+**No known limitations remain for common use cases!**

@@ -3,6 +3,7 @@ import {
 	type Node,
 	type SourceFile,
 	SyntaxKind,
+	type TypeReferenceNode,
 } from "ts-morph";
 
 /**
@@ -86,4 +87,57 @@ export function collectNamedImportReferences(
 	}
 
 	return references;
+}
+
+/**
+ * Type mapping from myzod to zod type names
+ */
+export const MYZOD_TO_ZOD_TYPE_MAP: Record<string, string> = {
+	StringType: "ZodString",
+	NumberType: "ZodNumber",
+	BooleanType: "ZodBoolean",
+	ObjectType: "ZodObject",
+	ArrayType: "ZodArray",
+	Type: "ZodType",
+	// Add more mappings as needed
+	ObjectShape: "ZodRawShape",
+	InferObjectShape: "ZodRawShape", // Map to closest equivalent
+	AnyType: "ZodTypeAny",
+};
+
+/**
+ * Gets myzod type imports that need to be transformed
+ */
+export function getMyzodTypeImports(
+	importDeclaration: ImportDeclaration,
+): string[] {
+	const namedImports = importDeclaration.getNamedImports();
+	return namedImports
+		.map((namedImport) => namedImport.getName())
+		.filter((name) => name in MYZOD_TO_ZOD_TYPE_MAP);
+}
+
+/**
+ * Collects all type reference nodes in the source file that use myzod types
+ */
+export function collectMyzodTypeReferences(
+	sourceFile: SourceFile,
+	myzodTypeNames: string[],
+) {
+	const typeReferences: { name: string; nodes: TypeReferenceNode[] }[] = [];
+
+	for (const typeName of myzodTypeNames) {
+		const references = sourceFile
+			.getDescendantsOfKind(SyntaxKind.TypeReference)
+			.filter((typeRef) => {
+				const typeName_inner = typeRef.getTypeName();
+				return typeName_inner.getText() === typeName;
+			});
+
+		if (references.length > 0) {
+			typeReferences.push({ name: typeName, nodes: references });
+		}
+	}
+
+	return typeReferences;
 }

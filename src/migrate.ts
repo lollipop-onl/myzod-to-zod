@@ -11,7 +11,9 @@ import {
 	collectNamedImportReferences,
 	getMyzodName,
 	getMyzodNamedImports,
+	getMyzodTypeImports,
 	hasNamedImports,
+	MYZOD_TO_ZOD_TYPE_MAP,
 } from "./collect-imports.js";
 import { getRootIdentifier, isMyzodReference } from "./myzod-node.js";
 
@@ -89,6 +91,9 @@ export function migrateMyzodToZodV3WithIssues(
  * Transforms myzod import statement to zod import
  */
 function transformImportStatement(importDeclaration: ImportDeclaration) {
+	// Get myzod type imports before removing them
+	const myzodTypeImports = getMyzodTypeImports(importDeclaration);
+
 	// Change module specifier from 'myzod' to 'zod'
 	importDeclaration.setModuleSpecifier("zod");
 
@@ -104,8 +109,16 @@ function transformImportStatement(importDeclaration: ImportDeclaration) {
 		namedImport.remove();
 	}
 
-	// Add only { z } as named import
+	// Add { z } as named import
 	importDeclaration.addNamedImport("z");
+
+	// Add zod type imports for any myzod type imports that were present
+	for (const myzodType of myzodTypeImports) {
+		const zodType = MYZOD_TO_ZOD_TYPE_MAP[myzodType];
+		if (zodType) {
+			importDeclaration.addNamedImport(zodType);
+		}
+	}
 }
 
 /**
@@ -318,14 +331,19 @@ function handleNamedImportTransformations(
 }
 
 /**
- * Transforms type references: myzod.Infer<T> -> z.infer<typeof T>
+ * Transforms type references: myzod.Infer<T> -> z.infer<typeof T> and myzod types -> zod types
  */
 function transformTypeReferences(
 	sourceFile: SourceFile,
-	_namedImports: string[] = [],
+	namedImports: string[] = [],
 ) {
 	const typeReferences = sourceFile.getDescendantsOfKind(
 		SyntaxKind.TypeReference,
+	);
+
+	// Get myzod type imports that need transformation
+	const myzodTypeImports = namedImports.filter(
+		(name) => name in MYZOD_TO_ZOD_TYPE_MAP,
 	);
 
 	for (const typeRef of typeReferences) {
@@ -349,6 +367,27 @@ function transformTypeReferences(
 					typeRef.replaceWithText(
 						`z.infer<typeof ${schemaType.replace(/typeof\s+/, "")}>`,
 					);
+				}
+			}
+		}
+		// Handle direct type references like StringType, NumberType, etc.
+		else if (Node.isIdentifier(typeName)) {
+			const typeNameText = typeName.getText();
+
+			// Check if this is a myzod type that needs transformation
+			if (myzodTypeImports.includes(typeNameText)) {
+				const zodType = MYZOD_TO_ZOD_TYPE_MAP[typeNameText];
+				if (zodType) {
+					// Preserve type arguments if they exist
+					const typeArgs = typeRef.getTypeArguments();
+					if (typeArgs.length > 0) {
+						const typeArgsText = typeArgs
+							.map((arg) => arg.getText())
+							.join(", ");
+						typeRef.replaceWithText(`${zodType}<${typeArgsText}>`);
+					} else {
+						typeRef.replaceWithText(zodType);
+					}
 				}
 			}
 		}
