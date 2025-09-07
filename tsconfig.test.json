@@ -1,9 +1,9 @@
 {
-  "extends": "@tsconfig/node24",
-  "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "bundler"
-  },
-  "include": ["./src/**/*.ts", "./test/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+	"extends": "@tsconfig/node24",
+	"compilerOptions": {
+		"module": "ESNext",
+		"moduleResolution": "bundler"
+	},
+	"include": ["./src/**/*.ts", "./test/**/*.ts"],
+	"exclude": ["node_modules", "dist"]
 }
