@@ -1,7 +1,9 @@
 # myzod-to-zod
 
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/lollipop-onl/myzod-to-zod)
+
 [![npm version](https://img.shields.io/npm/v/myzod-to-zod.svg)](https://www.npmjs.com/package/myzod-to-zod)
-[![Tests](https://github.com/simochee/myzod-to-zod/workflows/Tests/badge.svg)](https://github.com/simochee/myzod-to-zod/actions)
+[![Tests](https://github.com/lollipop-onl/myzod-to-zod/workflows/Tests/badge.svg)](https://github.com/lollipop-onl/myzod-to-zod/actions)
 
 A codemod to automatically migrate your codebase from [myzod](https://github.com/davidmdm/myzod) to [zod v3](https://github.com/colinhacks/zod).
 
@@ -9,9 +11,9 @@ This tool uses AST transformations to safely and accurately convert myzod valida
 
 ## ✨ Features
 
-- 🔄 **100% Test Coverage**: All 46 transformation patterns tested and verified
+- 🔄 **100% Test Coverage**: All transformation patterns tested and verified
 - 🛡️ **AST-based**: Safe transformations that preserve code structure and comments
-- ⚡ **High Success Rate**: Converts 46/46 common myzod patterns automatically
+- ⚡ **High Success Rate**: Converts common myzod patterns automatically
 - 🎯 **Precise**: Only transforms myzod-related code, leaves everything else untouched
 - 📚 **Well Documented**: Comprehensive guide for manual migration steps
 
@@ -88,7 +90,7 @@ type Status = z.infer<typeof statusSchema>;
 
 ## 🔄 Transformation Coverage
 
-### ✅ Fully Automated (46/46 patterns)
+### ✅ Fully Automated
 
 #### Basic Types
 - `myzod.string()` → `z.string()`
@@ -125,23 +127,9 @@ type Status = z.infer<typeof statusSchema>;
 
 ## 🔧 Manual Migration Required
 
-While this codemod handles 100% of the common schema definition patterns, only error handling requires manual attention:
+While this codemod handles 100% of schema definition patterns automatically, only error handling requires manual attention:
 
-### 1. ~~Type Inference~~ ✅ **AUTOMATED**
-
-**✅ Fully Automated**
-
-```typescript
-// Before
-type User = myzod.Infer<typeof userSchema>;
-
-// After (automatically transformed)
-type User = z.infer<typeof userSchema>;
-```
-
-This transformation is now **fully automated** by the codemod.
-
-### 2. Error Handling Patterns
+### Error Handling Patterns
 
 **⚠️ Manual Change Required**
 
@@ -161,43 +149,13 @@ if (!result.success) {
 
 **Why:** myzod and zod have fundamentally different error handling APIs.
 
-### 3. ~~Advanced Object Methods~~ ✅ **AUTOMATED**
-
-**✅ Fully Automated**
-
-```typescript
-// Before
-const schema = myzod.object({...}).collectErrors();
-
-// After (automatically transformed)
-const schema = z.object({...});
-```
-
-This transformation is now **fully automated** by the codemod. The `.collectErrors()` method is automatically removed since zod collects errors by default.
-
-### 3. ~~Dictionary Types~~ ✅ **AUTOMATED**
-
-**✅ Fully Automated**
-
-```typescript
-// Before
-const schema = myzod.dictionary(myzod.string());
-
-// After (automatically transformed)
-const schema = z.record(z.string().optional());
-```
-
-This transformation is now **fully automated** by the codemod. The `.dictionary()` method automatically handles the optional wrapping as per myzod's semantics.
-
 ## 📋 Post-Migration Checklist
 
 After running the codemod, please:
 
-1. ~~**Update Type Imports**~~: ✅ **Automated** - `myzod.Infer<T>` → `z.infer<typeof T>`
-2. ~~**Remove collectErrors**~~: ✅ **Automated** - `.collectErrors()` calls automatically removed
-3. **Review Error Handling**: Update `.try()` calls to `.safeParse()`
-4. **Test Thoroughly**: Run your test suite to catch any behavioral differences
-5. **Update Dependencies**: Remove myzod and ensure zod v3 is installed
+1. **Review Error Handling**: Update `.try()` calls to `.safeParse()`
+2. **Test Thoroughly**: Run your test suite to catch any behavioral differences
+3. **Update Dependencies**: Remove myzod and ensure zod v3 is installed
 
 ## 🛠️ Installation & Setup
 
