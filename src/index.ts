@@ -130,7 +130,7 @@ function displayIssuesForFile(issues: ManualMigrationIssue[]) {
 
 function displayHelpReference() {
     console.log('\n📖 For detailed migration instructions, see:');
-    console.log('   https://github.com/lollipop-onl/myzod-to-zod#manual-migration-required');
+    console.log('   https://github.com/lollipop-onl/myzod-to-zod#-manual-migration-required');
 }
 
 export { migrateMyzodToZodV3 } from './migrate.js';

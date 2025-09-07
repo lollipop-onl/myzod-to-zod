@@ -164,6 +164,8 @@ if (!result.success) {
 
 **Why:** myzod and zod have fundamentally different error handling APIs.
 
+📖 **For detailed error handling migration patterns and examples, see our [Error Handling Migration Guide](./docs/error-handling-migration.md)**
+
 ## 📋 Post-Migration Checklist
 
 After running the codemod, please:
@@ -248,8 +250,12 @@ myzod-to-zod/
 │   └── myzod-node.ts     # AST utilities
 ├── test/                 # Test suite
 │   ├── scenarios.ts      # Main test file
-│   └── __scenarios__/    # 46 test cases with README
-└── reports/              # Documentation
+│   └── __scenarios__/    # 44 test cases with README
+└── docs/                 # Developer documentation
+    ├── implementation-guide.md           # AST architecture guide
+    ├── api-transformation-reference.md   # Complete transformation patterns
+    ├── library-comparison-reference.md   # Performance comparison & migration rationale
+    └── error-handling-migration.md       # ValidationError & try() migration guide
 ```
 
 ## 📚 Resources

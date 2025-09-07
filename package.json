@@ -7,6 +7,12 @@
   "bin": {
     "myzod-to-zod": "./dist/index.js"
   },
+  "license": "MIT",
+  "homepage": "https://github.com/lollipop-onl/myzod-to-zod#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lollipop-onl/myzod-to-zod.git"
+  },
   "main": "./dist/index.js",
   "exports": {
     ".": "./dist/index.js"
