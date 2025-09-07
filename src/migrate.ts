@@ -73,6 +73,7 @@ function handleSpecialTransformations(sourceFile: SourceFile, myzodName: string)
     const coerceTransformations: { callExpr: CallExpression, typeName: string }[] = [];
     const literalsTransformations: { callExpr: CallExpression, args: string[] }[] = [];
     const enumTransformations: { callExpr: CallExpression, enumArg: string }[] = [];
+    const collectErrorsTransformations: { callExpr: CallExpression }[] = [];
     
     for (const callExpr of callExpressions) {
         const expression = callExpr.getExpression();
@@ -124,6 +125,11 @@ function handleSpecialTransformations(sourceFile: SourceFile, myzodName: string)
                         enumTransformations.push({ callExpr, enumArg });
                     }
                 }
+                
+                // Handle collectErrors transformation specially
+                if (methodName === 'collectErrors') {
+                    collectErrorsTransformations.push({ callExpr });
+                }
             }
         }
     }
@@ -145,6 +151,15 @@ function handleSpecialTransformations(sourceFile: SourceFile, myzodName: string)
     for (const { callExpr, enumArg } of enumTransformations) {
         const newExpression = `z.nativeEnum(${enumArg})`;
         callExpr.replaceWithText(newExpression);
+    }
+    
+    // Apply collectErrors transformations (remove the method call)
+    for (const { callExpr } of collectErrorsTransformations) {
+        const expression = callExpr.getExpression();
+        if (Node.isPropertyAccessExpression(expression)) {
+            const baseExpression = expression.getExpression();
+            callExpr.replaceWithText(baseExpression.getText());
+        }
     }
 }
 
@@ -260,8 +275,8 @@ function transformMyzodReferences(sourceFile: SourceFile, myzodName: string) {
             if (rootId === myzodName || rootId === 'z') {
                 const methodName = expression.getName();
                 
-                // Skip coerce, literals, and enum - already handled in special transformations
-                if (methodName === 'coerce' || methodName === 'literals' || methodName === 'enum') {
+                // Skip coerce, literals, enum, and collectErrors - already handled in special transformations
+                if (methodName === 'coerce' || methodName === 'literals' || methodName === 'enum' || methodName === 'collectErrors') {
                     continue;
                 }
                 

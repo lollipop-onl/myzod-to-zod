@@ -6,7 +6,7 @@ const userSchema = myzod.object({
   email: string().pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/),
   age: myzod.number().min(0).max(150).optional(),
   isActive: myzod.boolean().default(true),
-});
+}).collectErrors();
 
 // 複雑な変換パターン
 const statusSchema = literals("active", "inactive", "pending");

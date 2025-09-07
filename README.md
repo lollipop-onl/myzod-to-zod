@@ -88,7 +88,7 @@ type Status = z.infer<typeof statusSchema>;
 
 ## 🔄 Transformation Coverage
 
-### ✅ Fully Automated (44/44 patterns)
+### ✅ Fully Automated (45/45 patterns)
 
 #### Basic Types
 - `myzod.string()` → `z.string()`
@@ -113,6 +113,7 @@ type Status = z.infer<typeof statusSchema>;
 - `.withPredicate()` → `.refine()` (Custom validation)
 - `.map()` → `.transform()` (Value transformation)
 - `.partial()` → `.partial()` (Object partial types)
+- `.collectErrors()` → *removed* (zod collects errors by default)
 - `myzod.number().coerce()` → `z.coerce.number()` (Structural change)
 - `myzod.intersection()` → `z.intersection()` (Intersection types)
 - `myzod.literals('a', 'b')` → `z.union([z.literal('a'), z.literal('b')])` (Complex expansion)
@@ -159,21 +160,21 @@ if (!result.success) {
 
 **Why:** myzod and zod have fundamentally different error handling APIs.
 
-### 3. Advanced Object Methods
+### 3. ~~Advanced Object Methods~~ ✅ **AUTOMATED**
 
-**⚠️ Manual Change Required**
+**✅ Fully Automated**
 
 ```typescript
 // Before
 const schema = myzod.object({...}).collectErrors();
 
-// After (manual fix needed)
-const schema = z.object({...}); // collectErrors not available in zod
+// After (automatically transformed)
+const schema = z.object({...});
 ```
 
-**Why:** Some myzod-specific features don't have direct zod equivalents.
+This transformation is now **fully automated** by the codemod. The `.collectErrors()` method is automatically removed since zod collects errors by default.
 
-### 4. Custom Predicate Error Objects
+### 3. Custom Predicate Error Objects
 
 **⚠️ Manual Change Required**
 
@@ -192,7 +193,7 @@ const schema = z.object({...}); // collectErrors not available in zod
 
 **Why:** zod's error structure differs from myzod's custom error objects.
 
-### 5. Dictionary Types with Complex Logic
+### 4. Dictionary Types with Complex Logic
 
 **⚠️ Manual Review Recommended**
 
@@ -211,9 +212,9 @@ const schema = z.record(z.string());
 After running the codemod, please:
 
 1. ~~**Update Type Imports**~~: ✅ **Automated** - `myzod.Infer<T>` → `z.infer<typeof T>`
-2. **Review Error Handling**: Update `.try()` calls to `.safeParse()`
-3. **Test Thoroughly**: Run your test suite to catch any behavioral differences
-4. **Check Advanced Features**: Review any `.collectErrors()` or custom error handling
+2. ~~**Remove collectErrors**~~: ✅ **Automated** - `.collectErrors()` calls automatically removed
+3. **Review Error Handling**: Update `.try()` calls to `.safeParse()`
+4. **Test Thoroughly**: Run your test suite to catch any behavioral differences
 5. **Update Dependencies**: Remove myzod and ensure zod v3 is installed
 
 ## 🛠️ Installation & Setup

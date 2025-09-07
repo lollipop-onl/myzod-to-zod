@@ -315,6 +315,16 @@ describe('myzod から zod への変換', () => {
             expect(source).toBe(expected);
         });
     });
+
+    // collectErrors の削除テスト
+    describe('collectErrors の削除', () => {
+        it('collectErrors メソッドを自動削除する', async () => {
+            const { myzod, zodv3 } = await readFixtures('object-collect-errors');
+            const migratedCode = convertMyzodToZodV3String(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+    });
 });
 
 async function validateSchemas(testCase: string) {
