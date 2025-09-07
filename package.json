@@ -1,6 +1,6 @@
 {
 	"name": "@lollipop-onl/myzod-to-zod",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "A codemod to migrate from myzod to zod v3",
 	"homepage": "https://github.com/lollipop-onl/myzod-to-zod#readme",
 	"repository": "lollipop-onl/myzod-to-zod",
