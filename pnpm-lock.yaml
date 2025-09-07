@@ -8,12 +8,18 @@ importers:
 
   .:
     dependencies:
+      myzod:
+        specifier: ^1.12.1
+        version: 1.12.1
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
       ts-morph:
         specifier: ^26.0.0
         version: 26.0.0
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
     devDependencies:
       '@tsconfig/node24':
         specifier: ^24.0.1
@@ -469,6 +475,9 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
+  myzod@1.12.1:
+    resolution: {integrity: sha512-gcn8HEJ8g247z9EiC3IIuadaUBl3dbn+G7sD5Y3fc00rTy32sNc+HOCRRrt9fu+yCGzeQe5leSmG2k0+TmsnSQ==}
+
   nanoid@3.3.11:
     resolution: {integrity: sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
@@ -644,6 +653,9 @@ packages:
     resolution: {integrity: sha512-hUrmaWBdVDcxvYqnyh09zunKzROWjbZTiNy8dBEjkS7ehEDQibXJ7XvlmtbwuTclUiIyN+CyXQD4Vmko8fNm8w==}
     engines: {node: '>=8'}
     hasBin: true
+
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
 snapshots:
 
@@ -986,6 +998,8 @@ snapshots:
 
   ms@2.1.3: {}
 
+  myzod@1.12.1: {}
+
   nanoid@3.3.11: {}
 
   path-browserify@1.0.1: {}
@@ -1158,3 +1172,5 @@ snapshots:
     dependencies:
       siginfo: 2.0.0
       stackback: 0.0.2
+
+  zod@3.25.76: {}

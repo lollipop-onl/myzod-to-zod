@@ -3,15 +3,365 @@ import {readFile} from "node:fs/promises";
 import {Project} from "ts-morph";
 import * as prettier from "prettier";
 
-describe('myzod to zod', () => {
+describe('myzod to zod conversion', () => {
+    // TDD Step 1 (RED): Start with simplest test case
+    describe('basic-string conversion', () => {
+        it('should convert basic string schema', async () => {
+            const { myzod, zodv3 } = await readFixtures('basic-string');
+            
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('basic-string');
+        });
+    });
+    
+    // TDD Step 3: Add next test case (predicate-string requires .withPredicate -> .refine)
+    describe('predicate-string conversion', () => {
+        it('should convert string with predicate to refine', async () => {
+            const { myzod, zodv3 } = await readFixtures('predicate-string');
+            
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            
+            // This should fail until we implement .withPredicate -> .refine conversion
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('predicate-string');
+        });
+    });
+    
+    // Additional test cases following TDD cycle - remove .skip when ready to implement
+    describe.skip('basic-number conversion', () => {
+        it('should convert basic number schema', async () => {
+            const { myzod, zodv3 } = await readFixtures('basic-number');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('basic-number');
+        });
+    });
+    
+    describe.skip('basic-boolean conversion', () => {
+        it('should convert basic boolean schema', async () => {
+            const { myzod, zodv3 } = await readFixtures('basic-boolean');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('basic-boolean');
+        });
+    });
+    
+    describe.skip('basic-literal conversion', () => {
+        it('should convert basic literal schema', async () => {
+            const { myzod, zodv3 } = await readFixtures('basic-literal');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('basic-literal');
+        });
+    });
+    
+    describe.skip('basic-object conversion', () => {
+        it('should convert basic object schema', async () => {
+            const { myzod, zodv3 } = await readFixtures('basic-object');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('basic-object');
+        });
+    });
+    
+    describe.skip('basic-array conversion', () => {
+        it('should convert basic array schema', async () => {
+            const { myzod, zodv3 } = await readFixtures('basic-array');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('basic-array');
+        });
+    });
+    
+    describe.skip('map-string-to-length conversion', () => {
+        it('should convert map to transform', async () => {
+            const { myzod, zodv3 } = await readFixtures('map-string-to-length');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('map-string-to-length');
+        });
+    });
+    
+    describe.skip('union-basic conversion', () => {
+        it('should convert union schema', async () => {
+            const { myzod, zodv3 } = await readFixtures('union-basic');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('union-basic');
+        });
+    });
+    
+    describe.skip('tuple-basic conversion', () => {
+        it('should convert tuple schema', async () => {
+            const { myzod, zodv3 } = await readFixtures('tuple-basic');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('tuple-basic');
+        });
+    });
+    
+    describe.skip('record-basic conversion', () => {
+        it('should convert record schema', async () => {
+            const { myzod, zodv3 } = await readFixtures('record-basic');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('record-basic');
+        });
+    });
+    
+    describe.skip('string-min-max conversion', () => {
+        it('should convert string with min/max constraints', async () => {
+            const { myzod, zodv3 } = await readFixtures('string-min-max');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('string-min-max');
+        });
+    });
+    
+    describe.skip('string-pattern conversion', () => {
+        it('should convert string with pattern', async () => {
+            const { myzod, zodv3 } = await readFixtures('string-pattern');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('string-pattern');
+        });
+    });
+    
+    describe.skip('string-default conversion', () => {
+        it('should convert string with default value', async () => {
+            const { myzod, zodv3 } = await readFixtures('string-default');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('string-default');
+        });
+    });
+    
+    describe.skip('optional-basic conversion', () => {
+        it('should convert optional schema', async () => {
+            const { myzod, zodv3 } = await readFixtures('optional-basic');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('optional-basic');
+        });
+    });
+    
+    describe.skip('nullable-basic conversion', () => {
+        it('should convert nullable schema', async () => {
+            const { myzod, zodv3 } = await readFixtures('nullable-basic');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('nullable-basic');
+        });
+    });
+    
+    describe.skip('number-coerce conversion', () => {
+        it('should convert number coercion', async () => {
+            const { myzod, zodv3 } = await readFixtures('number-coerce');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('number-coerce');
+        });
+    });
+    
+    describe.skip('object-partial conversion', () => {
+        it('should convert partial object', async () => {
+            const { myzod, zodv3 } = await readFixtures('object-partial');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('object-partial');
+        });
+    });
+    
+    describe.skip('array-min-max conversion', () => {
+        it('should convert array with min/max constraints', async () => {
+            const { myzod, zodv3 } = await readFixtures('array-min-max');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('array-min-max');
+        });
+    });
+    
+    describe.skip('intersection-basic conversion', () => {
+        it('should convert intersection schema', async () => {
+            const { myzod, zodv3 } = await readFixtures('intersection-basic');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('intersection-basic');
+        });
+    });
+    
+    describe.skip('literals-multiple conversion', () => {
+        it('should convert multiple literals', async () => {
+            const { myzod, zodv3 } = await readFixtures('literals-multiple');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('literals-multiple');
+        });
+    });
+    
+    describe.skip('enum-basic conversion', () => {
+        it('should convert enum schema', async () => {
+            const { myzod, zodv3 } = await readFixtures('enum-basic');
+            const migratedCode = convertMyzodToZodV3(myzod);
+            const { source, expected } = await formatCode(migratedCode, zodv3);
+            expect(source).toBe(expected);
+        });
+        
+        it('should maintain same validation behavior', async () => {
+            await validateSchemas('enum-basic');
+        });
+    });
+});
 
-})
+async function validateSchemas(testCase: string) {
+    // Dynamic import to test actual schema behavior
+    const myzodModule = await import(`./__scenarios__/${testCase}/myzod.ts`);
+    const zodv3Module = await import(`./__scenarios__/${testCase}/zodv3.ts`);
+    
+    const myzodSchema = myzodModule.schema;
+    const zodv3Schema = zodv3Module.schema;
+    
+    // Helper function to test data
+    const testData = (data: any, shouldSucceed: boolean, dataName: string) => {
+        const myzodResult = myzodSchema.try(data);
+        const zodv3Result = zodv3Schema.safeParse(data);
+        
+        const myzodSuccess = !(myzodResult && typeof myzodResult === 'object' && 'message' in myzodResult);
+        
+        expect(myzodSuccess).toBe(shouldSucceed);
+        expect(zodv3Result.success).toBe(shouldSucceed);
+        
+        // If both succeed, compare parsed values for transformation tests
+        if (shouldSucceed && myzodSuccess && zodv3Result.success) {
+            // For transform/map operations, check if expected output matches
+            if ('expectedOutput' in myzodModule) {
+                expect(myzodResult).toBe(myzodModule.expectedOutput);
+                expect(zodv3Result.data).toBe(myzodModule.expectedOutput);
+            }
+        }
+    };
+    
+    // Test all valid data variants
+    const dataKeys = Object.keys(myzodModule).filter(key => key.startsWith('valid'));
+    dataKeys.forEach(key => {
+        const data = myzodModule[key];
+        if (data !== undefined) {
+            testData(data, true, key);
+        }
+    });
+    
+    // Test primary valid data if no variants
+    if (dataKeys.length === 0 && 'validData' in myzodModule) {
+        testData(myzodModule.validData, true, 'validData');
+    }
+    
+    // Test all invalid data variants
+    const invalidKeys = Object.keys(myzodModule).filter(key => key.startsWith('invalid'));
+    invalidKeys.forEach(key => {
+        const data = myzodModule[key];
+        if (data !== undefined) {
+            testData(data, false, key);
+        }
+    });
+    
+    // Test primary invalid data if no variants
+    if (invalidKeys.length === 0 && 'invalidData' in myzodModule) {
+        testData(myzodModule.invalidData, false, 'invalidData');
+    }
+}
 
-async function runScenario(fixturePath: string) {
-    const { myzod, zodv3 } = await readFixtures(fixturePath);
-    const { source, expected} = await transform(myzod, zodv3, () => { /* TODO */});
-
-    expect(source).toEqual(expected);
+function convertMyzodToZodV3(myzodCode: string): string {
+    // TDD Step 4 (GREEN): Add withPredicate -> refine conversion
+    return myzodCode
+        .replace(/import myzod from 'myzod';/g, "import { z } from 'zod';")
+        .replace(/myzod\./g, 'z.')
+        .replace(/\.withPredicate\(/g, '.refine(');
 }
 
 async function readFixtures(name: string) {
@@ -25,28 +375,20 @@ async function readFixtures(name: string) {
     return { myzod, zodv3 };
 }
 
-async function transform(beforeText: string, afterText: string, migrate: (...args:any[]) => any) {
-    const project = new Project({
-        useInMemoryFileSystem: true,
-        skipFileDependencyResolution: true,
-    });
-
-
-    const sourceFile = project.createSourceFile('source.ts');
-    let source = migrate(beforeText); // migrate to myzod to zod v3
-
-    let expected = project.createSourceFile(`expected.ts`, afterText).getFullText();
+async function formatCode(sourceCode: string, expectedCode: string) {
+    let source = sourceCode;
+    let expected = expectedCode;
 
     try {
-        source = await prettier.format(source, { parser: 'typescript' })
+        source = await prettier.format(source, { parser: 'typescript' });
     } catch {
-        throw new Error(`Failed to format source code: ${source}`)
+        throw new Error(`Failed to format source code: ${source}`);
     }
 
     try {
-        expected = await prettier.format(expected, { parser: 'typescript' })
+        expected = await prettier.format(expected, { parser: 'typescript' });
     } catch {
-        throw new Error(`Failed to format expected code: ${expected}`)
+        throw new Error(`Failed to format expected code: ${expected}`);
     }
 
     return { source, expected };
