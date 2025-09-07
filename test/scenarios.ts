@@ -381,7 +381,7 @@ describe("myzod から zod への変換", () => {
 		});
 
 		it("allowUnknownKeys() を .strip() に変換する", async () => {
-			const { myzod } = await readFixtures("object-strict-behavior");
+			const { myzod, zodv3 } = await readFixtures("object-strict-behavior");
 			const migratedCode = convertMyzodToZodV3String(myzod);
 			expect(migratedCode).toContain(".strip()");
 			expect(migratedCode).not.toContain("allowUnknownKeys");
