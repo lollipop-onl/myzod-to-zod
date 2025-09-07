@@ -1,12 +1,12 @@
-# API変換リファレンス
+# API Transformation Reference
 
-## 概要
+## Overview
 
-myzod から Zod v3 への完全な変換パターンを示すリファレンス。すべての変換パターンは実装済みであり、44/44のテストケースで動作が検証されている。
+Complete transformation patterns from myzod to Zod v3. All transformation patterns are implemented and verified with comprehensive test cases.
 
-## インポート文
+## Import Statements
 
-### 基本インポート
+### Basic Import
 
 ```typescript
 // myzod
@@ -16,7 +16,7 @@ import myzod from 'myzod'
 import { z } from 'zod'
 ```
 
-### 型推論インポート
+### Type Inference Import
 
 ```typescript
 // myzod
@@ -24,10 +24,10 @@ import myzod, { Infer } from 'myzod'
 
 // Zod v3
 import { z } from 'zod'
-// Note: Infer は z.infer に変換される
+// Note: Infer is converted to z.infer
 ```
 
-### エイリアスインポート
+### Alias Import
 
 ```typescript
 // myzod
@@ -35,28 +35,28 @@ import customMyzod from 'myzod'
 
 // Zod v3  
 import { z } from 'zod'
-// Note: すべての customMyzod 参照は z に変換される
+// Note: All customMyzod references are converted to z
 ```
 
-## 基本型スキーマ
+## Basic Type Schemas
 
-### プリミティブ型
+### Primitive Types
 
-| myzod | Zod v3 | 変換タイプ |
-|-------|--------|-----------|
-| `myzod.string()` | `z.string()` | 直接置換 |
-| `myzod.number()` | `z.number()` | 直接置換 |
-| `myzod.boolean()` | `z.boolean()` | 直接置換 |
-| `myzod.bigint()` | `z.bigint()` | 直接置換 |
-| `myzod.date()` | `z.date()` | 直接置換 |
-| `myzod.undefined()` | `z.undefined()` | 直接置換 |
-| `myzod.null()` | `z.null()` | 直接置換 |
-| `myzod.unknown()` | `z.unknown()` | 直接置換 |
+| myzod | Zod v3 | Transformation Type |
+|-------|--------|-------------------|
+| `myzod.string()` | `z.string()` | Direct replacement |
+| `myzod.number()` | `z.number()` | Direct replacement |
+| `myzod.boolean()` | `z.boolean()` | Direct replacement |
+| `myzod.bigint()` | `z.bigint()` | Direct replacement |
+| `myzod.date()` | `z.date()` | Direct replacement |
+| `myzod.undefined()` | `z.undefined()` | Direct replacement |
+| `myzod.null()` | `z.null()` | Direct replacement |
+| `myzod.unknown()` | `z.unknown()` | Direct replacement |
 
-### リテラル型
+### Literal Types
 
 ```typescript
-// 単一リテラル
+// Single literal
 // myzod
 const schema = myzod.literal('hello')
 
@@ -65,7 +65,7 @@ const schema = z.literal('hello')
 ```
 
 ```typescript
-// 複数リテラル（構造的変換）
+// Multiple literals (structural transformation)
 // myzod
 const schema = myzod.literals('red', 'green', 'blue')
 
@@ -77,9 +77,9 @@ const schema = z.union([
 ])
 ```
 
-## 複合型スキーマ
+## Composite Type Schemas
 
-### オブジェクト
+### Object
 
 ```typescript
 // myzod
@@ -95,7 +95,7 @@ const schema = z.object({
 })
 ```
 
-### 配列
+### Array
 
 ```typescript
 // myzod
@@ -105,7 +105,7 @@ const schema = myzod.array(myzod.string())
 const schema = z.array(z.string())
 ```
 
-### タプル
+### Tuple
 
 ```typescript
 // myzod
@@ -115,7 +115,7 @@ const schema = myzod.tuple([myzod.string(), myzod.number()])
 const schema = z.tuple([z.string(), z.number()])
 ```
 
-### ユニオン
+### Union
 
 ```typescript
 // myzod
@@ -125,7 +125,7 @@ const schema = myzod.union([myzod.string(), myzod.number()])
 const schema = z.union([z.string(), z.number()])
 ```
 
-### レコード
+### Record
 
 ```typescript
 // myzod
@@ -135,7 +135,7 @@ const schema = myzod.record(myzod.string())
 const schema = z.record(z.string())
 ```
 
-### 交差型
+### Intersection
 
 ```typescript
 // myzod
@@ -151,12 +151,12 @@ const schema = z.intersection(
 )
 ```
 
-## メソッドチェーン変換
+## Method Chain Transformations
 
-### 制約メソッド（直接置換）
+### Constraint Methods (Direct Replacement)
 
 ```typescript
-// 最小・最大値
+// Min/Max values
 // myzod
 myzod.string().min(3).max(10)
 myzod.number().min(0).max(100)
@@ -169,7 +169,7 @@ z.array(z.string()).min(1).max(5)
 ```
 
 ```typescript
-// オプショナル・nullable
+// Optional/Nullable
 // myzod
 myzod.string().optional()
 myzod.string().nullable()
@@ -180,7 +180,7 @@ z.string().nullable()
 ```
 
 ```typescript
-// デフォルト値
+// Default values
 // myzod
 myzod.string().default('hello')
 myzod.number().default(42)
@@ -190,10 +190,10 @@ z.string().default('hello')
 z.number().default(42)
 ```
 
-### パターンマッチング（メソッド名変更）
+### Pattern Matching (Method Name Change)
 
 ```typescript
-// 正規表現
+// Regular expression
 // myzod
 myzod.string().pattern(/^[A-Z]+$/)
 
@@ -201,10 +201,10 @@ myzod.string().pattern(/^[A-Z]+$/)
 z.string().regex(/^[A-Z]+$/)
 ```
 
-### カスタムバリデーション（メソッド名変更）
+### Custom Validation (Method Name Change)
 
 ```typescript
-// カスタム検証
+// Custom validation
 // myzod
 myzod.string().withPredicate(s => s.length > 0, 'Must not be empty')
 
@@ -212,10 +212,10 @@ myzod.string().withPredicate(s => s.length > 0, 'Must not be empty')
 z.string().refine(s => s.length > 0, 'Must not be empty')
 ```
 
-### 値変換（メソッド名変更）
+### Value Transformation (Method Name Change)
 
 ```typescript
-// 値のマッピング
+// Value mapping
 // myzod
 myzod.string().map(s => s.length)
 
@@ -223,12 +223,12 @@ myzod.string().map(s => s.length)
 z.string().transform(s => s.length)
 ```
 
-## 構造的変換
+## Structural Transformations
 
-### 型強制（coerce）
+### Type Coercion
 
 ```typescript
-// 型強制（構造変更）
+// Type coercion (structural change)
 // myzod
 const schema = myzod.number().coerce()
 
@@ -237,7 +237,7 @@ const schema = z.coerce.number()
 ```
 
 ```typescript
-// チェーンとの組み合わせ
+// Chain combination
 // myzod
 const schema = myzod.number().coerce().min(0)
 
@@ -245,7 +245,7 @@ const schema = myzod.number().coerce().min(0)
 const schema = z.coerce.number().min(0)
 ```
 
-### Enum変換
+### Enum Transformation
 
 ```typescript
 // TypeScript enum
@@ -258,10 +258,10 @@ const schema = myzod.enum(Color)
 const schema = z.nativeEnum(Color)
 ```
 
-### オブジェクト操作
+### Object Operations
 
 ```typescript
-// 部分型
+// Partial type
 // myzod
 const schema = myzod.object({
   name: myzod.string(),
@@ -275,9 +275,49 @@ const schema = z.object({
 }).partial()
 ```
 
-## 型推論
+### Unknown Keys Handling
 
-### Infer型の変換
+```typescript
+// Allow unknown keys
+// myzod
+const schema = myzod.object({
+  name: myzod.string()
+}).allowUnknownKeys()
+
+// Zod v3
+const schema = z.object({
+  name: z.string()
+}).passthrough()
+```
+
+### Object Shape Access
+
+```typescript
+// Object shape access
+// myzod
+const baseSchema = myzod.object({
+  name: myzod.string(),
+  age: myzod.number()
+})
+const extendedSchema = myzod.object({
+  ...baseSchema.shape(),
+  email: myzod.string()
+})
+
+// Zod v3
+const baseSchema = z.object({
+  name: z.string(),
+  age: z.number()
+})
+const extendedSchema = z.object({
+  ...baseSchema.shape,
+  email: z.string()
+})
+```
+
+## Type Inference
+
+### Infer Type Transformation
 
 ```typescript
 // myzod
@@ -301,9 +341,29 @@ const userSchema = z.object({
 type User = z.infer<typeof userSchema>
 ```
 
-## 複雑な変換例
+### Type Reference Transformations
 
-### ネストしたオブジェクト
+```typescript
+// myzod type references
+import { StringType, NumberType, ObjectType, Type } from 'myzod'
+
+const stringSchema: StringType = myzod.string()
+const numberSchema: NumberType = myzod.number()
+const objectSchema: ObjectType<{ name: string }> = myzod.object({ name: myzod.string() })
+const genericSchema: Type<string> = myzod.string()
+
+// Zod v3 type references
+import { ZodString, ZodNumber, ZodObject, ZodType } from 'zod'
+
+const stringSchema: ZodString = z.string()
+const numberSchema: ZodNumber = z.number()
+const objectSchema: ZodObject<{ name: string }> = z.object({ name: z.string() })
+const genericSchema: ZodType<string> = z.string()
+```
+
+## Complex Transformation Examples
+
+### Nested Objects
 
 ```typescript
 // myzod
@@ -329,7 +389,7 @@ const schema = z.object({
 })
 ```
 
-### 複雑なメソッドチェーン
+### Complex Method Chains
 
 ```typescript
 // myzod
@@ -349,46 +409,46 @@ const schema = z.string()
   .transform(s => s.trim())
 ```
 
-## 変換されないパターン
+## Patterns Not Transformed
 
-### 無関係な同名メソッド
+### Unrelated Methods with Same Names
 
 ```typescript
-// 変換されない（AST解析により除外）
+// Not transformed (excluded by AST analysis)
 const obj = {
   map: (x: any) => x,
   withPredicate: (y: any) => y
 }
 
-obj.map(5)           // 変更されない
-obj.withPredicate(1) // 変更されない
+obj.map(5)           // Not changed
+obj.withPredicate(1) // Not changed
 ```
 
-### コメント内のコード
+### Code in Comments
 
 ```typescript
-// 変換されない
+// Not transformed
 /* 
- * この関数は myzod.string().map() を使用します
- * myzod.withPredicate() も使用可能です  
+ * This function uses myzod.string().map()
+ * myzod.withPredicate() is also available  
  */
 ```
 
-### 文字列内のコード
+### Code in Strings
 
 ```typescript
-// 変換されない
+// Not transformed
 const codeExample = `
   const schema = myzod.string()
 `
 ```
 
-## エラーハンドリング（手動調整が必要）
+## Error Handling (Manual Adjustment Required)
 
-myzodとZodではエラーハンドリングのアプローチが根本的に異なるため、以下のパターンは手動調整が必要。
+myzod and Zod have fundamentally different error handling approaches, so the following patterns require manual adjustment:
 
 ```typescript
-// myzod（手動調整前）
+// myzod (before manual adjustment)
 const result = schema.try(data)
 if (result instanceof myzod.ValidationError) {
   console.log('Error:', result.message)
@@ -397,7 +457,7 @@ if (result instanceof myzod.ValidationError) {
   console.log('Success:', result)
 }
 
-// Zod v3（手動調整後）
+// Zod v3 (after manual adjustment)
 const result = schema.safeParse(data)
 if (!result.success) {
   console.log('Error:', result.error.message)
@@ -407,26 +467,27 @@ if (!result.success) {
 }
 ```
 
-## 自動化率
+## Automation Coverage
 
-| カテゴリ | 自動化率 | 備考 |
-|---------|---------|------|
-| 基本型変換 | 100% | 完全自動化 |
-| 複合型変換 | 100% | 完全自動化 |
-| メソッドチェーン | 100% | 完全自動化 |
-| 構造的変換 | 100% | coerce、literals、enum対応 |
-| 型推論 | 100% | Infer<T> → z.infer<typeof T> |
-| エラーハンドリング | 0% | 手動調整が必要 |
+| Category | Automation Rate | Notes |
+|---------|---------------|-------|
+| Basic type transformations | 100% | Fully automated |
+| Composite type transformations | 100% | Fully automated |
+| Method chains | 100% | Fully automated |
+| Structural transformations | 100% | coerce, literals, enum supported |
+| Type inference | 100% | Infer<T> → z.infer<typeof T> |
+| Type references | 100% | StringType, Type<T> etc. supported |
+| Error handling | 0% | Manual adjustment required |
 
-**総合自動化率: 100%**（エラーハンドリングを除く）
+**Overall automation rate: 100%** (excluding error handling)
 
-## テスト済み変換パターン
+## Tested Transformation Patterns
 
-すべての変換パターンは以下のテストで動作が保証されている:
+All transformation patterns are guaranteed to work with the following tests:
 
-- **44個のテストシナリオ**すべてが通過
-- **実行時検証**による動作確認  
-- **型安全性**の保証
-- **エッジケース**への対応
+- **All test scenarios** passing
+- **Runtime validation** for behavior verification  
+- **Type safety** guaranteed
+- **Edge case** coverage
 
-実際の使用例は `test/__scenarios__/*/` ディレクトリで確認できる。
+Actual usage examples can be found in the `test/__scenarios__/*/` directory.

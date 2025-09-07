@@ -172,6 +172,45 @@ if (!result.success) {
 
 **Why:** myzod and zod have fundamentally different error handling APIs.
 
+### 3. Object Property Handling Differences
+
+**⚠️ Manual Change Required**
+
+```typescript
+// myzod (rejects unknown properties by default)
+const schema = myzod.object({
+  name: myzod.string()
+});
+// schema.parse({name: "John", extra: "value"}) -> ValidationError
+
+// Equivalent strict behavior in zod
+const schema = z.strictObject({
+  name: z.string()
+});
+// schema.parse({name: "John", extra: "value"}) -> ZodError
+
+// zod default behavior (strips unknown properties)
+const schema = z.object({
+  name: z.string()
+});
+// schema.parse({name: "John", extra: "value"}) -> {name: "John"}
+
+// myzod.allowUnknownKeys() equivalent in zod (passes through unknown properties)
+const schema = z.object({
+  name: z.string()
+}).passthrough();
+// schema.parse({name: "John", extra: "value"}) -> {name: "John", extra: "value"}
+```
+
+**Why:** 
+- **myzod default**: Rejects unknown properties (strict)
+- **zod default**: Strips unknown properties (lenient)
+- **Migration impact**: Objects with extra properties will behave differently
+
+**Solution:**
+- Use `z.strictObject()` instead of `z.object()` to match myzod's default behavior
+- Or use `z.object().passthrough()` for myzod's `.allowUnknownKeys()` behavior
+
 
 📖 **For detailed error handling migration patterns and examples, see our [Error Handling Migration Guide](./docs/error-handling-migration.md)** - ValidationError and .try() patterns
 

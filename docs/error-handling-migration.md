@@ -1,12 +1,12 @@
-# エラーハンドリング移行ガイド
+# Error Handling Migration Guide
 
-## 概要
+## Overview
 
-myzodとZod v3では、エラーハンドリングのアプローチが根本的に異なる。このドキュメントでは、myzodの`ValidationError`と`try`メソッドをZod v3で置き換える具体的な方法を示す。
+myzod and Zod v3 have fundamentally different error handling approaches. This document provides specific methods for replacing myzod's `ValidationError` and `try` method with Zod v3 equivalents.
 
-## 基本的なエラーハンドリングパターン
+## Basic Error Handling Patterns
 
-### 1. 基本的な検証とエラーハンドリング
+### 1. Basic Validation and Error Handling
 
 #### myzod
 ```typescript
@@ -14,61 +14,61 @@ import myzod from 'myzod';
 
 const schema = myzod.string().min(3);
 
-// try()を使用したエラーハンドリング
+// Error handling using try()
 const result = schema.try('ab');
 if (result instanceof myzod.ValidationError) {
-  console.log('エラー:', result.message);
-  console.log('パス:', result.path);
+  console.log('Error:', result.message);
+  console.log('Path:', result.path);
 } else {
-  console.log('成功:', result);
+  console.log('Success:', result);
 }
 ```
 
-#### Zod v3での置き換え
+#### Zod v3 Replacement
 ```typescript
 import { z } from 'zod';
 
 const schema = z.string().min(3);
 
-// safeParse()を使用したエラーハンドリング
+// Error handling using safeParse()
 const result = schema.safeParse('ab');
 if (!result.success) {
-  console.log('エラー:', result.error.message);
-  console.log('パス:', result.error.issues[0]?.path);
+  console.log('Error:', result.error.message);
+  console.log('Path:', result.error.issues[0]?.path);
 } else {
-  console.log('成功:', result.data);
+  console.log('Success:', result.data);
 }
 ```
 
-### 2. 例外を投げる場合
+### 2. Exception Throwing Cases
 
 #### myzod
 ```typescript
 try {
   const value = schema.parse('ab');
-  console.log('成功:', value);
+  console.log('Success:', value);
 } catch (error) {
   if (error instanceof myzod.ValidationError) {
-    console.log('エラー:', error.message);
+    console.log('Error:', error.message);
   }
 }
 ```
 
-#### Zod v3での置き換え
+#### Zod v3 Replacement
 ```typescript
 try {
   const value = schema.parse('ab');
-  console.log('成功:', value);
+  console.log('Success:', value);
 } catch (error) {
   if (error instanceof z.ZodError) {
-    console.log('エラー:', error.message);
+    console.log('Error:', error.message);
   }
 }
 ```
 
-## 複雑なオブジェクト検証
+## Complex Object Validation
 
-### オブジェクトスキーマでのエラーハンドリング
+### Object Schema Error Handling
 
 #### myzod
 ```typescript
@@ -86,9 +86,9 @@ const invalidUser = {
 
 const result = userSchema.try(invalidUser);
 if (result instanceof myzod.ValidationError) {
-  console.log('検証エラー:');
+  console.log('Validation errors:');
   
-  // 収集されたエラーを処理
+  // Process collected errors
   if (result.collectedErrors) {
     Object.entries(result.collectedErrors).forEach(([field, error]) => {
       console.log(`- ${field}: ${error.message}`);
@@ -97,7 +97,7 @@ if (result instanceof myzod.ValidationError) {
 }
 ```
 
-#### Zod v3での置き換え
+#### Zod v3 Replacement
 ```typescript
 const userSchema = z.object({
   name: z.string().min(1),
@@ -113,9 +113,9 @@ const invalidUser = {
 
 const result = userSchema.safeParse(invalidUser);
 if (!result.success) {
-  console.log('検証エラー:');
+  console.log('Validation errors:');
   
-  // すべてのエラーを処理（Zodは標準で全エラーを収集）
+  // Process all errors (Zod collects all errors by default)
   result.error.issues.forEach(issue => {
     const field = issue.path.join('.');
     console.log(`- ${field}: ${issue.message}`);
@@ -123,65 +123,65 @@ if (!result.success) {
 }
 ```
 
-## カスタムエラーメッセージの処理
+## Custom Error Message Handling
 
-### カスタム検証でのエラーハンドリング
+### Custom Validation Error Handling
 
 #### myzod
 ```typescript
 const passwordSchema = myzod.string()
-  .min(8, '8文字以上である必要があります')
+  .min(8, 'Must be at least 8 characters')
   .withPredicate(
     password => /[A-Z]/.test(password),
-    '大文字を含む必要があります'
+    'Must contain uppercase letter'
   )
   .withPredicate(
     password => /[a-z]/.test(password),
-    '小文字を含む必要があります'
+    'Must contain lowercase letter'
   )
   .withPredicate(
     password => /\d/.test(password),
-    '数字を含む必要があります'
+    'Must contain number'
   );
 
 const result = passwordSchema.try('weak');
 if (result instanceof myzod.ValidationError) {
-  console.log('パスワードエラー:', result.message);
+  console.log('Password error:', result.message);
 }
 ```
 
-#### Zod v3での置き換え
+#### Zod v3 Replacement
 ```typescript
 const passwordSchema = z.string()
-  .min(8, { message: '8文字以上である必要があります' })
+  .min(8, { message: 'Must be at least 8 characters' })
   .refine(
     password => /[A-Z]/.test(password),
-    { message: '大文字を含む必要があります' }
+    { message: 'Must contain uppercase letter' }
   )
   .refine(
     password => /[a-z]/.test(password),
-    { message: '小文字を含む必要があります' }
+    { message: 'Must contain lowercase letter' }
   )
   .refine(
     password => /\d/.test(password),
-    { message: '数字を含む必要があります' }
+    { message: 'Must contain number' }
   );
 
 const result = passwordSchema.safeParse('weak');
 if (!result.success) {
-  // 最初のエラーメッセージを表示
-  console.log('パスワードエラー:', result.error.issues[0]?.message);
+  // Show first error message
+  console.log('Password error:', result.error.issues[0]?.message);
   
-  // または、すべてのエラーメッセージを表示
+  // Or show all error messages
   result.error.issues.forEach(issue => {
-    console.log('エラー:', issue.message);
+    console.log('Error:', issue.message);
   });
 }
 ```
 
-## ネストしたオブジェクトのエラーハンドリング
+## Nested Object Error Handling
 
-### 深くネストしたデータ構造
+### Deeply Nested Data Structures
 
 #### myzod
 ```typescript
@@ -212,12 +212,12 @@ const invalidData = {
 
 const result = nestedSchema.try(invalidData);
 if (result instanceof myzod.ValidationError) {
-  console.log('エラーパス:', result.path);
-  console.log('エラーメッセージ:', result.message);
+  console.log('Error path:', result.path);
+  console.log('Error message:', result.message);
 }
 ```
 
-#### Zod v3での置き換え
+#### Zod v3 Replacement
 ```typescript
 const nestedSchema = z.object({
   user: z.object({
@@ -247,39 +247,39 @@ const invalidData = {
 const result = nestedSchema.safeParse(invalidData);
 if (!result.success) {
   result.error.issues.forEach(issue => {
-    console.log('エラーパス:', issue.path.join('.'));
-    console.log('エラーメッセージ:', issue.message);
+    console.log('Error path:', issue.path.join('.'));
+    console.log('Error message:', issue.message);
   });
 }
 ```
 
-## 実用的なユーティリティ関数
+## Practical Utility Functions
 
-### エラーハンドリングのヘルパー関数
+### Error Handling Helper Functions
 
-#### myzodスタイルのヘルパー
+#### myzod-style Helper
 ```typescript
-// myzodの try() のような動作を模倣するヘルパー
+// Helper to mimic myzod's try() behavior
 export function tryParse<T>(schema: z.ZodSchema<T>, data: unknown): T | z.ZodError {
   const result = schema.safeParse(data);
   return result.success ? result.data : result.error;
 }
 
-// 使用例
+// Usage example
 const schema = z.string().min(3);
 const result = tryParse(schema, 'ab');
 
 if (result instanceof z.ZodError) {
-  console.log('エラー:', result.message);
+  console.log('Error:', result.message);
 } else {
-  console.log('成功:', result);
+  console.log('Success:', result);
 }
 ```
 
-#### ZodErrorをmyzod ValidationErrorインターフェースに変換
+#### Converting ZodError to myzod ValidationError Interface
 
 ```typescript
-// myzod ValidationError互換インターフェース
+// myzod ValidationError compatible interface
 interface MyzodCompatibleError extends Error {
   name: string;
   message: string;
@@ -287,7 +287,7 @@ interface MyzodCompatibleError extends Error {
   collectedErrors?: Record<string, MyzodCompatibleError>;
 }
 
-// ZodErrorをmyzod ValidationError形式に変換
+// Convert ZodError to myzod ValidationError format
 export function convertToMyzodError(zodError: z.ZodError): MyzodCompatibleError {
   const firstIssue = zodError.issues[0];
   
@@ -297,7 +297,7 @@ export function convertToMyzodError(zodError: z.ZodError): MyzodCompatibleError 
     path: firstIssue?.path,
   };
   
-  // 複数のエラーがある場合は collectedErrors として格納
+  // Store multiple errors as collectedErrors if present
   if (zodError.issues.length > 1) {
     error.collectedErrors = {};
     
@@ -314,7 +314,7 @@ export function convertToMyzodError(zodError: z.ZodError): MyzodCompatibleError 
   return error;
 }
 
-// myzod互換のtryパース関数
+// myzod-compatible try parse function
 export function tryParseCompatible<T>(
   schema: z.ZodSchema<T>, 
   data: unknown
@@ -328,7 +328,7 @@ export function tryParseCompatible<T>(
   return result.data;
 }
 
-// 使用例 - myzodコードとほぼ同じ書き方が可能
+// Usage example - similar to myzod code
 const userSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
@@ -341,26 +341,26 @@ const result = tryParseCompatible(userSchema, {
   age: -1
 });
 
-// myzodと同じようにエラーチェック
+// Same error checking as myzod
 if ('name' in result && result.name === 'ValidationError') {
-  console.log('検証エラー:', result.message);
-  console.log('エラーパス:', result.path);
+  console.log('Validation error:', result.message);
+  console.log('Error path:', result.path);
   
-  // 複数エラーの処理
+  // Multiple error processing
   if (result.collectedErrors) {
     Object.entries(result.collectedErrors).forEach(([field, error]) => {
       console.log(`- ${field}: ${error.message}`);
     });
   }
 } else {
-  console.log('成功:', result);
+  console.log('Success:', result);
 }
 ```
 
-#### ValidationErrorクラスの完全な再現
+#### Complete ValidationError Class Recreation
 
 ```typescript
-// myzod ValidationErrorクラスの完全な再現
+// Complete recreation of myzod ValidationError class
 export class ValidationError extends Error {
   public name = 'ValidationError';
   public path?: (string | number)[];
@@ -376,7 +376,7 @@ export class ValidationError extends Error {
     this.collectedErrors = collectedErrors;
   }
   
-  // ZodErrorから ValidationError インスタンスを作成
+  // Create ValidationError instance from ZodError
   static fromZodError(zodError: z.ZodError): ValidationError {
     const firstIssue = zodError.issues[0];
     const message = firstIssue?.message || 'Validation failed';
@@ -384,7 +384,7 @@ export class ValidationError extends Error {
     
     let collectedErrors: Record<string, ValidationError> | undefined;
     
-    // 複数のエラーがある場合
+    // Handle multiple errors
     if (zodError.issues.length > 1) {
       collectedErrors = {};
       
@@ -401,7 +401,7 @@ export class ValidationError extends Error {
   }
 }
 
-// 完全にmyzod互換のtryパース関数
+// Fully myzod-compatible try parse function
 export function tryParseMyzod<T>(
   schema: z.ZodSchema<T>, 
   data: unknown
@@ -415,51 +415,51 @@ export function tryParseMyzod<T>(
   return result.data;
 }
 
-// 使用例 - myzodのコードをそのまま使用可能
+// Usage example - can use myzod code as-is
 const result2 = tryParseMyzod(userSchema, {
   name: '',
   email: 'invalid-email'
 });
 
 if (result2 instanceof ValidationError) {
-  console.log('エラー:', result2.message);
-  console.log('パス:', result2.path);
+  console.log('Error:', result2.message);
+  console.log('Path:', result2.path);
   
-  // myzodと同じ方法で複数エラーを処理
+  // Same way to process multiple errors as myzod
   if (result2.collectedErrors) {
     Object.entries(result2.collectedErrors).forEach(([field, error]) => {
-      console.log(`フィールドエラー ${field}:`, error.message);
-      console.log(`パス:`, error.path);
+      console.log(`Field error ${field}:`, error.message);
+      console.log(`Path:`, error.path);
     });
   }
 } else {
-  console.log('検証成功:', result2);
+  console.log('Validation success:', result2);
 }
 ```
 
-#### 既存myzodコードの最小限変更での移行
+#### Migrating Existing myzod Code with Minimal Changes
 
 ```typescript
-// 既存のmyzodコードを最小限の変更で移行
-// 元のmyzodコード:
+// Migrate existing myzod code with minimal changes
+// Original myzod code:
 // const result = myzodSchema.try(data);
 // if (result instanceof myzod.ValidationError) { ... }
 
-// 移行後 - インポートとスキーマ定義のみ変更
+// After migration - only import and schema definition changes
 import { z } from 'zod';
 import { tryParseMyzod, ValidationError } from './validation-utils';
 
-// スキーマはcodemodで自動変換済み
+// Schema automatically converted by codemod
 const schema = z.object({
   name: z.string().min(1),
   email: z.string().email()
 });
 
-// この部分は変更不要！
+// This part remains unchanged!
 const result = tryParseMyzod(schema, data);
 if (result instanceof ValidationError) {
-  console.log('エラー:', result.message);
-  console.log('パス:', result.path);
+  console.log('Error:', result.message);
+  console.log('Path:', result.path);
   
   if (result.collectedErrors) {
     Object.entries(result.collectedErrors).forEach(([field, error]) => {
@@ -467,13 +467,13 @@ if (result instanceof ValidationError) {
     });
   }
 } else {
-  console.log('成功:', result);
+  console.log('Success:', result);
 }
 ```
 
-#### フィールド別エラー取得ヘルパー
+#### Field-specific Error Helper
 ```typescript
-// フィールド別のエラーメッセージを取得
+// Get field-specific error messages
 export function getFieldErrors(error: z.ZodError): Record<string, string[]> {
   const fieldErrors: Record<string, string[]> = {};
   
@@ -488,7 +488,7 @@ export function getFieldErrors(error: z.ZodError): Record<string, string[]> {
   return fieldErrors;
 }
 
-// 使用例
+// Usage example
 const result = userSchema.safeParse(invalidUser);
 if (!result.success) {
   const fieldErrors = getFieldErrors(result.error);
@@ -499,45 +499,45 @@ if (!result.success) {
 }
 ```
 
-## 非同期検証でのエラーハンドリング
+## Async Validation Error Handling
 
-### 非同期バリデーション（Zod v3の追加機能）
+### Async Validation (Zod v3 Additional Feature)
 
 ```typescript
-// myzodでは基本的に同期のみだが、Zodでは非同期検証が可能
+// myzod is primarily synchronous, but Zod supports async validation
 const asyncSchema = z.string().refine(async (email) => {
-  // 外部APIでメールアドレスの存在確認
+  // Check email existence with external API
   const exists = await checkEmailExists(email);
   return exists;
 }, {
-  message: 'このメールアドレスは存在しません'
+  message: 'This email address does not exist'
 });
 
-// 非同期検証の使用
+// Using async validation
 async function validateEmail(email: string) {
   const result = await asyncSchema.safeParseAsync(email);
   
   if (!result.success) {
-    console.log('非同期検証エラー:', result.error.issues[0]?.message);
+    console.log('Async validation error:', result.error.issues[0]?.message);
     return false;
   }
   
-  console.log('検証成功:', result.data);
+  console.log('Validation success:', result.data);
   return true;
 }
 
 async function checkEmailExists(email: string): Promise<boolean> {
-  // 実際のAPI呼び出し
-  return true; // プレースホルダー
+  // Actual API call
+  return true; // Placeholder
 }
 ```
 
-## パフォーマンス最適化
+## Performance Optimization
 
-### 早期リターン戦略
+### Early Return Strategy
 
 ```typescript
-// myzod風の早期エラーリターン
+// myzod-style early error return
 export function parseOrError<T>(
   schema: z.ZodSchema<T>, 
   data: unknown
@@ -545,67 +545,67 @@ export function parseOrError<T>(
   const result = schema.safeParse(data);
   
   if (!result.success) {
-    // 最初のエラーのみを返す（パフォーマンス重視）
+    // Return only the first error (performance-focused)
     return {
       success: false,
-      error: result.error.issues[0]?.message || '検証エラー'
+      error: result.error.issues[0]?.message || 'Validation error'
     };
   }
   
   return { success: true, data: result.data };
 }
 
-// 使用例
+// Usage example
 const result = parseOrError(z.string().min(3), 'ab');
 if (!result.success) {
-  console.log('エラー:', result.error);
+  console.log('Error:', result.error);
 } else {
-  console.log('データ:', result.data);
+  console.log('Data:', result.data);
 }
 ```
 
-## 移行チェックリスト
+## Migration Checklist
 
-### myzod → Zod v3 エラーハンドリング移行手順
+### myzod → Zod v3 Error Handling Migration Steps
 
-#### オプション1: 標準的なZod移行（推奨）
+#### Option 1: Standard Zod Migration (Recommended)
 
 1. **`schema.try()`** → **`schema.safeParse()`**
-   - 戻り値の構造変更に対応
+   - Adapt to return value structure changes
    - `instanceof ValidationError` → `!result.success`
 
-2. **`error.message`** → **`error.error.message`** または **`error.error.issues[0]?.message`**
-   - エラーメッセージアクセス方法の変更
+2. **`error.message`** → **`error.error.message`** or **`error.error.issues[0]?.message`**
+   - Change error message access method
 
 3. **`error.path`** → **`error.error.issues[0]?.path`**
-   - エラーパス取得方法の変更
+   - Change error path access method
 
-4. **`collectErrors()`** → **標準動作**
-   - Zodはデフォルトで全エラーを収集
+4. **`collectErrors()`** → **Standard behavior**
+   - Zod collects all errors by default
 
-5. **カスタムエラーメッセージ**
+5. **Custom error messages**
    - `.withPredicate(fn, msg)` → `.refine(fn, { message: msg })`
 
-6. **非同期検証**（Zodの追加機能）
-   - `safeParseAsync()`を活用
+6. **Async validation** (Zod additional feature)
+   - Utilize `safeParseAsync()`
 
-#### オプション2: myzod互換ユーティリティ使用（最小限変更）
+#### Option 2: Using myzod-compatible Utilities (Minimal Changes)
 
-1. **ユーティリティファイルの作成**
+1. **Create utility file**
    ```typescript
    // validation-utils.ts
    import { z } from 'zod';
    
    export class ValidationError extends Error {
-     // 上記のValidationErrorクラスをコピー
+     // Copy ValidationError class from above
    }
    
    export function tryParseMyzod<T>(schema: z.ZodSchema<T>, data: unknown): T | ValidationError {
-     // 上記の関数をコピー
+     // Copy function from above
    }
    ```
 
-2. **インポートの変更のみ**
+2. **Change imports only**
    ```typescript
    // Before
    import myzod, { ValidationError } from 'myzod';
@@ -614,29 +614,29 @@ if (!result.success) {
    import { z } from 'zod';
    import { tryParseMyzod as try, ValidationError } from './validation-utils';
    
-   // スキーマ定義はcodemodで自動変換
-   // エラーハンドリングコードは変更不要！
+   // Schema definition automatically converted by codemod
+   // Error handling code remains unchanged!
    ```
 
-3. **既存のエラーハンドリングコードを保持**
-   - `schema.try()` → `tryParseMyzod(schema, data)`に一括置換
-   - `instanceof ValidationError`チェックはそのまま使用可能
-   - `error.path`、`error.collectedErrors`もそのまま使用可能
+3. **Keep existing error handling code**
+   - `schema.try()` → `tryParseMyzod(schema, data)` bulk replace
+   - `instanceof ValidationError` checks work as-is
+   - `error.path`, `error.collectedErrors` work as-is
 
-#### 移行戦略の選択指針
+#### Migration Strategy Selection Guidelines
 
-**標準Zod移行を選ぶべき場合:**
-- 新規プロジェクトまたは小規模なエラーハンドリング
-- Zodの豊富な機能（非同期検証など）を活用したい
-- 長期的な保守性を重視する
+**Choose Standard Zod Migration when:**
+- New project or small-scale error handling
+- Want to utilize Zod's rich features (async validation etc.)
+- Prioritize long-term maintainability
 
-**myzod互換ユーティリティを選ぶべき場合:**
-- 大規模なコードベースで多くのエラーハンドリングコードがある
-- 短期間での移行が必要
-- 既存のエラーハンドリングロジックを変更したくない
+**Choose myzod-compatible Utilities when:**
+- Large codebase with extensive error handling code
+- Need short-term migration
+- Don't want to change existing error handling logic
 
-## まとめ
+## Summary
 
-myzodの`ValidationError`と`try`メソッドは、Zod v3の`safeParse`と`ZodError`で完全に置き換え可能である。Zodはより詳細なエラー情報と非同期検証をサポートしており、myzodの機能を上回る柔軟性を提供する。
+myzod's `ValidationError` and `try` method can be completely replaced with Zod v3's `safeParse` and `ZodError`. Zod provides more detailed error information and supports async validation, offering greater flexibility than myzod.
 
-提供されたヘルパー関数を使用することで、既存のmyzodコードパターンをZodで再現できる。
+Using the provided helper functions, existing myzod code patterns can be reproduced in Zod.

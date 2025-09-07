@@ -1,26 +1,26 @@
-# 実装ガイド
+# Implementation Guide
 
-## 概要
+## Overview
 
-myzod-to-zod codemodは、[nicoespeon/zod-v3-to-v4](https://github.com/nicoespeon/zod-v3-to-v4)のアーキテクチャを参考にした**AST（抽象構文木）操作ベース**の実装により、安全で精密な変換を実現している。
+The myzod-to-zod codemod is implemented using **AST (Abstract Syntax Tree) manipulation** based on the architecture of [nicoespeon/zod-v3-to-v4](https://github.com/nicoespeon/zod-v3-to-v4), enabling safe and precise transformations.
 
-## アーキテクチャ
+## Architecture
 
-### ディレクトリ構造
+### Directory Structure
 
 ```
 src/
-├── index.ts                    # CLI エントリーポイント
-├── migrate.ts                  # メイン変換ロジック（AST操作）
-├── collect-imports.ts          # myzod インポート収集・分析
-└── myzod-node.ts              # myzod AST ノード識別・操作
+├── index.ts                    # CLI entry point
+├── migrate.ts                  # Main transformation logic (AST operations)
+├── collect-imports.ts          # myzod import collection & analysis
+└── myzod-node.ts              # myzod AST node identification & operations
 ```
 
-### 主要コンポーネント
+### Key Components
 
-#### 1. インポート収集・分析 (`collect-imports.ts`)
+#### 1. Import Collection & Analysis (`collect-imports.ts`)
 
-myzodインポート宣言の収集とエイリアス対応を行う。
+Collects myzod import declarations and handles alias mapping.
 
 ```typescript
 export function collectMyzodImportDeclarations(sourceFile: SourceFile): ImportDeclaration[]
@@ -28,16 +28,16 @@ export function getMyzodName(importDeclaration: ImportDeclaration): string
 export function collectMyzodReferences(sourceFile: SourceFile, myzodName: string)
 ```
 
-**実装例**:
+**Implementation Example**:
 ```typescript
-// インポート: import customMyzod from 'myzod';
+// Import: import customMyzod from 'myzod';
 const imports = collectMyzodImportDeclarations(sourceFile);
 const myzodName = getMyzodName(imports[0]); // => "customMyzod"
 ```
 
-#### 2. myzod ノード識別・操作 (`myzod-node.ts`)
+#### 2. myzod Node Identification & Operations (`myzod-node.ts`)
 
-AST分析による安全なノード識別を実現。無関係な同名メソッドやコメントは変換対象から除外される。
+Ensures safe node identification through AST analysis. Unrelated methods with the same name or comments are excluded from transformation.
 
 ```typescript
 export function isMyzodNode(node: Node): boolean
@@ -45,25 +45,25 @@ export function isMyzodReference(node: Node, myzodName: string): boolean
 export function getRootIdentifier(node: Node): string | undefined
 ```
 
-**安全性の確保**:
+**Safety Assurance**:
 
-変換される（myzod関連）:
+Transformed (myzod-related):
 ```typescript
 import myzod from 'myzod';
 const schema = myzod.string().withPredicate(x => x.length > 3);
 ```
 
-変換されない（無関係）:
+Not transformed (unrelated):
 ```typescript
 const obj = { map: x => x, withPredicate: y => y };
-obj.map(5);           // AST分析により除外
-obj.withPredicate(1); // AST分析により除外
-// コメント内の myzod.map() も除外
+obj.map(5);           // Excluded by AST analysis
+obj.withPredicate(1); // Excluded by AST analysis
+// myzod.map() in comments also excluded
 ```
 
-#### 3. メイン変換ロジック (`migrate.ts`)
+#### 3. Main Transformation Logic (`migrate.ts`)
 
-変換の実行フローは以下の通り:
+The transformation execution flow:
 
 ```typescript
 export function migrateMyzodToZodV3(sourceFile: SourceFile): string {
@@ -74,10 +74,10 @@ export function migrateMyzodToZodV3(sourceFile: SourceFile): string {
     for (const importDeclaration of myzodImports) {
         const myzodName = getMyzodName(importDeclaration);
         
-        // 1. インポート文の変換
+        // 1. Transform import statements
         transformImportStatement(importDeclaration);
         
-        // 2. myzod 参照の変換
+        // 2. Transform myzod references
         transformMyzodReferences(sourceFile, myzodName);
     }
 
@@ -85,7 +85,7 @@ export function migrateMyzodToZodV3(sourceFile: SourceFile): string {
 }
 ```
 
-**インポート文変換**:
+**Import Statement Transformation**:
 
 ```typescript
 function transformImportStatement(importDeclaration: ImportDeclaration) {
@@ -101,7 +101,7 @@ function transformImportStatement(importDeclaration: ImportDeclaration) {
 }
 ```
 
-変換例:
+Transformation example:
 ```typescript
 // Before
 import myCustomName from 'myzod';
@@ -110,82 +110,85 @@ import myCustomName from 'myzod';
 import { z } from 'zod';
 ```
 
-**myzod 参照変換**:
+**myzod Reference Transformation**:
 
-変換処理は以下の段階で実行される:
+The transformation process executes in the following stages:
 
-1. **PropertyAccessExpression変換**: `myzod.string` → `z.string`
-2. **CallExpression変換**: メソッド名の変更 (`.withPredicate` → `.refine`)
-3. **構造的変換**: 複雑な構文変更 (`myzod.number().coerce()` → `z.coerce.number()`)
+1. **PropertyAccessExpression transformation**: `myzod.string` → `z.string`
+2. **CallExpression transformation**: Method name changes (`.withPredicate` → `.refine`)
+3. **Structural transformation**: Complex syntax changes (`myzod.number().coerce()` → `z.coerce.number()`)
 
-#### 4. CLI エントリーポイント (`index.ts`)
+#### 4. CLI Entry Point (`index.ts`)
 
-**使用方法**:
+**Usage**:
 ```bash
-# プレビュー（変更確認のみ）
+# Preview (view changes only)
 node dist/index.js "src/**/*.ts"
 
-# 実際の変換実行
+# Execute actual transformation
 node dist/index.js "src/**/*.ts" --write
 ```
 
-## 実装された変換パターン
+## Implemented Transformation Patterns
 
-### 完全対応（44/44テスト通過）
+### Complete Coverage (All Tests Passing)
 
-| 変換機能 | myzod | Zod v3 | 実装状況 |
-|---------|-------|---------|----------|
-| インポート文 | `import myzod from 'myzod'` | `import { z } from 'zod'` | ✅ 完了 |
-| 基本型全般 | `myzod.string/number/boolean()` | `z.string/number/boolean()` | ✅ 完了 |
-| 複合型 | `object/array/union/tuple/record` | `object/array/union/tuple/record` | ✅ 完了 |
-| 制約系 | `.min/.max/.default/.optional/.nullable` | `.min/.max/.default/.optional/.nullable` | ✅ 完了 |
-| パターン | `.pattern(regex)` | `.regex(regex)` | ✅ 完了 |
-| カスタム検証 | `.withPredicate(fn)` | `.refine(fn)` | ✅ 完了 |
-| 値変換 | `.map(fn)` | `.transform(fn)` | ✅ 完了 |
-| オブジェクト操作 | `.partial()` | `.partial()` | ✅ 完了 |
-| 型強制 | `myzod.number().coerce()` | `z.coerce.number()` | ✅ 完了 |
-| 複数リテラル | `myzod.literals('a', 'b')` | `z.union([z.literal('a'), z.literal('b')])` | ✅ 完了 |
-| 交差型 | `myzod.intersection(A, B)` | `z.intersection(A, B)` | ✅ 完了 |
-| TypeScript enum | `myzod.enum(MyEnum)` | `z.nativeEnum(MyEnum)` | ✅ 完了 |
-| 型推論 | `myzod.Infer<T>` | `z.infer<typeof T>` | ✅ 完了 |
+| Transformation Feature | myzod | Zod v3 | Implementation Status |
+|----------------------|-------|---------|-------------------|
+| Import statements | `import myzod from 'myzod'` | `import { z } from 'zod'` | ✅ Complete |
+| Basic types | `myzod.string/number/boolean()` | `z.string/number/boolean()` | ✅ Complete |
+| Composite types | `object/array/union/tuple/record` | `object/array/union/tuple/record` | ✅ Complete |
+| Constraints | `.min/.max/.default/.optional/.nullable` | `.min/.max/.default/.optional/.nullable` | ✅ Complete |
+| Pattern matching | `.pattern(regex)` | `.regex(regex)` | ✅ Complete |
+| Custom validation | `.withPredicate(fn)` | `.refine(fn)` | ✅ Complete |
+| Value transformation | `.map(fn)` | `.transform(fn)` | ✅ Complete |
+| Object operations | `.partial()` | `.partial()` | ✅ Complete |
+| Type coercion | `myzod.number().coerce()` | `z.coerce.number()` | ✅ Complete |
+| Multiple literals | `myzod.literals('a', 'b')` | `z.union([z.literal('a'), z.literal('b')])` | ✅ Complete |
+| Intersection | `myzod.intersection(A, B)` | `z.intersection(A, B)` | ✅ Complete |
+| TypeScript enum | `myzod.enum(MyEnum)` | `z.nativeEnum(MyEnum)` | ✅ Complete |
+| Type inference | `myzod.Infer<T>` | `z.infer<typeof T>` | ✅ Complete |
+| Type references | `StringType, Type<T>` etc. | `ZodString, ZodType<T>` etc. | ✅ Complete |
+| Unknown keys handling | `allowUnknownKeys()` | `passthrough()` | ✅ Complete |
+| Object shape access | `object().shape()` | `object().shape` | ✅ Complete |
 
-### 実装の特徴
+### Implementation Features
 
-**精密性**: TypeScript ASTの正確な構文解析により、コンテキストを理解した変換を実行。
+**Precision**: Accurate transformation through precise TypeScript AST syntax parsing with context understanding.
 
-**安全性**: 意図しない変換を完全に回避。文字列置換の危険性を排除。
+**Safety**: Complete avoidance of unintended transformations. Eliminates the risks of string replacement.
 
-**保守性**: TypeScriptの型システムによる品質保証。ts-morphライブラリの堅牢なAST操作。
+**Maintainability**: Quality assurance through TypeScript's type system. Robust AST operations with ts-morph library.
 
-**拡張性**: 新しいAPI変換の追加が容易。複雑な変換パターンへの対応可能。
+**Extensibility**: Easy addition of new API transformations. Support for complex transformation patterns.
 
-## 変換の詳細例
+## Detailed Transformation Examples
 
-### 基本的な変換
+### Basic Transformations
 
 ```typescript
-// 入力
+// Input
 import myzod from 'myzod';
 
 export const stringSchema = myzod.string();
 export const predicateSchema = myzod.string().withPredicate(s => s.length > 3);
 export const mapSchema = myzod.string().map(s => s.length);
 
-// 無関係なコード
+// Unrelated code
 const myObject = {
     map: (x: any) => x,
     withPredicate: (y: any) => y
 };
 const result = myObject.map(5);
 
-// 出力
+// Output
 import { z } from 'zod';
 
 export const stringSchema = z.string();
 export const predicateSchema = z.string().refine(s => s.length > 3);
 export const mapSchema = z.string().transform(s => s.length);
 
-// 無関係なコード（変更されない）
+// Unrelated code (unchanged)
 const myObject = {
     map: (x: any) => x,
     withPredicate: (y: any) => y
@@ -193,73 +196,73 @@ const myObject = {
 const result = myObject.map(5);
 ```
 
-### 複雑な構造変換
+### Complex Structural Transformations
 
 ```typescript
-// 型強制（coerce）
+// Type coercion
 // Before: myzod.number().coerce()
 // After:  z.coerce.number()
 
-// 複数リテラル
+// Multiple literals
 // Before: myzod.literals('red', 'green', 'blue')
 // After:  z.union([z.literal('red'), z.literal('green'), z.literal('blue')])
 
-// 型推論
+// Type inference
 // Before: myzod.Infer<typeof schema>
 // After:  z.infer<typeof schema>
 ```
 
-## テスト戦略
+## Test Strategy
 
-### TDD準拠の開発
+### TDD-Compliant Development
 
-プロジェクトは**Test-Driven Development (TDD)** の原則に従って開発されている:
+The project is developed following **Test-Driven Development (TDD)** principles:
 
-1. **Red Phase**: 新しいテストケースを追加（初期は失敗）
-2. **Green Phase**: 最小限の実装でテストを通す
-3. **Refactor Phase**: コード品質を向上
-4. **Commit**: 変更をコミット
+1. **Red Phase**: Add new test cases (initially failing)
+2. **Green Phase**: Minimal implementation to pass tests
+3. **Refactor Phase**: Improve code quality
+4. **Commit**: Commit changes
 
-### テスト構造
+### Test Structure
 
-- **44個のテストシナリオ**: `test/__scenarios__/*/`に配置
-- **包括的な検証**: 変換前後のコードと実行時の動作を検証
-- **100%テスト通過**: 全機能が動作検証済み
+- **Comprehensive test scenarios**: Located in `test/__scenarios__/*/`
+- **Comprehensive validation**: Validates both pre/post-transformation code and runtime behavior
+- **100% test pass rate**: All functionality is verified
 
-## 開発時の注意点
+## Development Guidelines
 
-### AST操作の安全性
+### AST Operation Safety
 
-- **TypeScript AST**を正確に解析
-- **コンテキスト理解**による変換
-- **無関係なコード**への影響を排除
+- **Accurate TypeScript AST** parsing
+- **Context-aware** transformations
+- **Exclusion of unrelated code** impacts
 
-### 拡張方法
+### Extension Methods
 
-新しい変換パターンを追加する場合:
+To add new transformation patterns:
 
-1. `test/__scenarios__/`に新しいテストケースを追加
-2. `src/migrate.ts`に変換ロジックを実装
-3. 既存のテストが通ることを確認
-4. 新しいテストが通ることを確認
+1. Add new test cases to `test/__scenarios__/`
+2. Implement transformation logic in `src/migrate.ts`
+3. Verify existing tests still pass
+4. Verify new tests pass
 
-### デバッグ
+### Debugging
 
-CLI のプレビューモードを活用:
+Utilize CLI preview mode:
 ```bash
-# 変更内容を確認
+# View changes
 node dist/index.js "target-file.ts"
 
-# 実際に適用
+# Apply changes
 node dist/index.js "target-file.ts" --write
 ```
 
-## パフォーマンス
+## Performance
 
-- **実行時間**: ~200ms（44テスト）
-- **メモリ使用量**: 低メモリフットプリント
-- **大規模ファイル**: ts-morphの効率的なAST操作により高速処理
+- **Execution time**: Fast processing for comprehensive test suites
+- **Memory usage**: Low memory footprint
+- **Large files**: High-speed processing through ts-morph's efficient AST operations
 
-## 結論
+## Conclusion
 
-AST実装により、**文字列置換の危険性を完全に排除**し、TypeScriptコードの意味構造を理解した**安全で精密な変換**が実現されている。参考プロジェクトの設計思想を踏襲することで、maintainableで拡張可能なcodemodアーキテクチャが完成し、**44/44のテストケース（100%）が通過**している実証済みの実装となっている。
+Through AST implementation, we have achieved **safe and precise transformations** that **completely eliminate the risks of string replacement** by understanding the semantic structure of TypeScript code. By following the design philosophy of the reference project, we have completed a maintainable and extensible codemod architecture with **proven implementation through comprehensive test coverage**.
