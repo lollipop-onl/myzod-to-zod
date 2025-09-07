@@ -4,19 +4,19 @@ import { z } from 'zod';
 export const basicAllowUnknownKeys = z.object({
   name: z.string(),
   age: z.number(),
-}).passthrough();
+});
 
 // Chained with other methods
 export const chainedAllowUnknownKeys = z.object({
   id: z.string(),
   email: z.string(),
-}).passthrough().optional();
+}).optional();
 
 // Nested object with allowUnknownKeys
 export const nestedAllowUnknownKeys = z.object({
   user: z.object({
     name: z.string(),
-  }).passthrough(),
+  }),
   settings: z.object({
     theme: z.string(),
   }),
@@ -27,5 +27,5 @@ export const complexAllowUnknownKeys = z.object({
   metadata: z.object({
     version: z.string(),
     tags: z.array(z.string()),
-  }).passthrough(),
-}).passthrough().default({});
+  }),
+}).default({});

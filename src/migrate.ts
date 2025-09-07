@@ -144,6 +144,7 @@ function handleSpecialTransformations(
 	const enumTransformations: { callExpr: CallExpression; enumArg: string; isArray: boolean }[] =
 		[];
 	const collectErrorsTransformations: { callExpr: CallExpression }[] = [];
+	const allowUnknownKeysTransformations: { callExpr: CallExpression }[] = [];
 	const dictionaryTransformations: {
 		callExpr: CallExpression;
 		schemaArg: string;
@@ -235,6 +236,11 @@ function handleSpecialTransformations(
 					collectErrorsTransformations.push({ callExpr });
 				}
 
+				// Handle allowUnknownKeys transformation specially
+				if (methodName === "allowUnknownKeys") {
+					allowUnknownKeysTransformations.push({ callExpr });
+				}
+
 				// Handle dictionary transformation specially
 				if (methodName === "dictionary") {
 					const args = callExpr.getArguments();
@@ -268,6 +274,21 @@ function handleSpecialTransformations(
 
 	// Apply collectErrors transformations (remove the method call)
 	for (const { callExpr } of collectErrorsTransformations) {
+		const expression = callExpr.getExpression();
+		if (Node.isPropertyAccessExpression(expression)) {
+			const baseExpression = expression.getExpression();
+			callExpr.replaceWithText(baseExpression.getText());
+		}
+	}
+
+	// Apply allowUnknownKeys transformations (remove the method call)
+	// Process in reverse order to handle nested cases correctly
+	for (const { callExpr } of allowUnknownKeysTransformations.reverse()) {
+		// Check if the node is still valid (not already removed)
+		if (callExpr.wasForgotten()) {
+			continue;
+		}
+		
 		const expression = callExpr.getExpression();
 		if (Node.isPropertyAccessExpression(expression)) {
 			const baseExpression = expression.getExpression();
@@ -487,12 +508,13 @@ function transformMyzodReferences(sourceFile: SourceFile, myzodName: string) {
 			if (rootId === myzodName || rootId === "z") {
 				const methodName = expression.getName();
 
-				// Skip coerce, literals, enum, collectErrors, and dictionary - already handled in special transformations
+				// Skip coerce, literals, enum, collectErrors, allowUnknownKeys, and dictionary - already handled in special transformations
 				if (
 					methodName === "coerce" ||
 					methodName === "literals" ||
 					methodName === "enum" ||
 					methodName === "collectErrors" ||
+					methodName === "allowUnknownKeys" ||
 					methodName === "dictionary"
 				) {
 					continue;
@@ -508,9 +530,6 @@ function transformMyzodReferences(sourceFile: SourceFile, myzodName: string) {
 						break;
 					case "pattern":
 						expression.getNameNode().replaceWithText("regex");
-						break;
-					case "allowUnknownKeys":
-						expression.getNameNode().replaceWithText("passthrough");
 						break;
 				}
 			}
