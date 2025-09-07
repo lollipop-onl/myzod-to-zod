@@ -81,7 +81,9 @@ myzod.string/number/boolean/literal/object/array/union/tuple/record() → z.*()
 // Structural transformations: All complete
 myzod.number().coerce() → z.coerce.number()
 myzod.literals('a', 'b') → z.union([z.literal('a'), z.literal('b')])
-myzod.enum(MyEnum) → z.nativeEnum(MyEnum)
+myzod.enum(['a', 'b']) → z.enum(['a', 'b'])           // Array literal → z.enum
+myzod.enum(colors) → z.enum(colors)                   // Array variable → z.enum  
+myzod.enum(MyEnum) → z.nativeEnum(MyEnum)             // Enum object → z.nativeEnum
 myzod.intersection(A, B) → z.intersection(A, B)
 
 // Type inference: Complete
@@ -101,6 +103,8 @@ const schema: Type<T> → const schema: ZodType<T>
 - ✅ `intersection-basic`: Complete implementation  
 - ✅ `literals-multiple`: Union expansion complete
 - ✅ `enum-basic`: Native enum transformation complete
+- ✅ `enum-array`: Array literal enum transformation complete
+- ✅ `enum-const-assertion`: Const assertion array enum transformation complete
 - ✅ `type-inference`: Type inference transformation complete
 - ✅ `type-string-basic`: StringType → ZodString transformation complete
 - ✅ `type-number-basic`: NumberType → ZodNumber transformation complete
@@ -122,7 +126,8 @@ const schema: Type<T> → const schema: ZodType<T>
 - Implemented AST transformations for each pattern
 - Added new allowUnknownKeys transformation (60/60 tests)
 - Added type reference transformations (68/68 tests)
-- Achieved 100% test coverage (68/68 tests passing)
+- Added intelligent enum argument detection (72/72 tests)
+- Achieved 100% test coverage (72/72 tests passing)
 
 **Implementation is now complete and ready for production use!**
 
@@ -154,7 +159,7 @@ node dist/index.js "src/**/*.ts"
 # Apply transformations
 node dist/index.js "src/**/*.ts" --write
 
-# Run all 68 tests (100% passing)
+# Run all 72 tests (100% passing)
 npm test
 
 # Type checking
@@ -169,8 +174,8 @@ npx myzod-to-zod "src/**/*.ts" --write
 🎉 **COMPLETED** - This codemod is fully implemented and ready for production use!
 
 **Key Achievements:**
-- ✅ 68/68 tests passing (100% completion)
-- ✅ Complete AST-based transformation engine
+- ✅ 72/72 tests passing (100% completion)
+- ✅ Complete AST-based transformation engine with intelligent enum argument detection
 - ✅ CLI tool with preview and write modes
 - ✅ Comprehensive documentation and test coverage
 - ✅ Ready for npm publication
@@ -181,9 +186,13 @@ The codemod can now be used to automatically migrate real myzod codebases to zod
 ## 🚧 Current Development Status & Future Tasks
 
 ### ✅ Recently Completed
+- **Intelligent Enum Argument Detection**: Added AST-based detection to distinguish array literals from enum objects
+  - `myzod.enum(['a', 'b'])` → `z.enum(['a', 'b'])` (array literal)
+  - `myzod.enum(colors)` → `z.enum(colors)` (array variable with const assertion)
+  - `myzod.enum(MyEnum)` → `z.nativeEnum(MyEnum)` (enum object)
 - **allowUnknownKeys Support**: Added transformation for `myzod.allowUnknownKeys()` → `z.passthrough()`
 - **Type Mapping Research**: Comprehensive analysis of myzod → zod type correspondences completed
-- **Type Reference Transformations**: Implemented StringType, NumberType, ObjectType, and Type<T> transformations (68/68 tests passing)
+- **Type Reference Transformations**: Implemented StringType, NumberType, ObjectType, and Type<T> transformations (72/72 tests passing)
 
 ### 🎯 Next Implementation Priority
 
@@ -249,9 +258,9 @@ The core type transformations are now complete. Remaining utility types could be
 - Edge cases in complex type compositions (unions, intersections with types)
 
 ### 📊 Achieved Impact
-- **Test Coverage**: Added 8 additional test scenarios (60→68 tests, +13% increase)
-- **Automation Level**: Achieved 100% automation for core type reference migrations
-- **User Experience**: Eliminated manual type annotation updates for common types
+- **Test Coverage**: Added 12 additional test scenarios (60→72 tests, +20% increase)
+- **Automation Level**: Achieved 100% automation for core type reference migrations and intelligent enum detection
+- **User Experience**: Eliminated manual type annotation updates and enum transformation decisions
 
 ### 🎉 Migration Story Complete
 The implementation now provides comprehensive automation covering:
@@ -259,6 +268,7 @@ The implementation now provides comprehensive automation covering:
 - ✅ TypeScript type annotations and interfaces (4 core type transformations)
 - ✅ Import statement type references (automatic type import transformation)
 - ✅ Generic type constraints and parameters (Type<T> → ZodType<T>)
-- ✅ Development-time type checking compatibility (68/68 tests passing)
+- ✅ Intelligent enum argument detection (array vs enum object distinction)
+- ✅ Development-time type checking compatibility (72/72 tests passing)
 
 **No known limitations remain for common use cases!**

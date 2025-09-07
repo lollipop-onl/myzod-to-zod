@@ -141,7 +141,7 @@ function handleSpecialTransformations(
 		callExpr: CallExpression;
 		args: string[];
 	}[] = [];
-	const enumTransformations: { callExpr: CallExpression; enumArg: string }[] =
+	const enumTransformations: { callExpr: CallExpression; enumArg: string; isArray: boolean }[] =
 		[];
 	const collectErrorsTransformations: { callExpr: CallExpression }[] = [];
 	const dictionaryTransformations: {
@@ -199,7 +199,34 @@ function handleSpecialTransformations(
 					const args = callExpr.getArguments();
 					if (args.length === 1) {
 						const enumArg = args[0].getText();
-						enumTransformations.push({ callExpr, enumArg });
+						// Check if the argument is an array literal or const assertion array
+						let isArray = Node.isArrayLiteralExpression(args[0]) || 
+									  (Node.isAsExpression(args[0]) && 
+									   Node.isArrayLiteralExpression(args[0].getExpression()) && 
+									   args[0].getTypeNode()?.getText() === "const");
+
+						// If it's an identifier, look for its variable declaration in the same file
+						if (!isArray && Node.isIdentifier(args[0])) {
+							const identifierName = args[0].getText();
+							const variableDeclarations = sourceFile.getVariableDeclarations();
+							
+							for (const varDecl of variableDeclarations) {
+								if (varDecl.getName() === identifierName) {
+									const initializer = varDecl.getInitializer();
+									if (initializer && (
+										Node.isArrayLiteralExpression(initializer) ||
+										(Node.isAsExpression(initializer) && 
+										 Node.isArrayLiteralExpression(initializer.getExpression()) &&
+										 initializer.getTypeNode()?.getText() === "const")
+									)) {
+										isArray = true;
+										break;
+									}
+								}
+							}
+						}
+
+						enumTransformations.push({ callExpr, enumArg, isArray });
 					}
 				}
 
@@ -234,8 +261,8 @@ function handleSpecialTransformations(
 	}
 
 	// Apply enum transformations
-	for (const { callExpr, enumArg } of enumTransformations) {
-		const newExpression = `z.nativeEnum(${enumArg})`;
+	for (const { callExpr, enumArg, isArray } of enumTransformations) {
+		const newExpression = isArray ? `z.enum(${enumArg})` : `z.nativeEnum(${enumArg})`;
 		callExpr.replaceWithText(newExpression);
 	}
 

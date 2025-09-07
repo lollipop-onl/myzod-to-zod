@@ -293,8 +293,30 @@ describe("myzod から zod への変換", () => {
 			expect(source).toBe(expected);
 		});
 
+		it("配列引数の列挙型をz.enumに変換する", async () => {
+			const { myzod, zodv3 } = await readFixtures("enum-array");
+			const migratedCode = convertMyzodToZodV3String(myzod);
+			const { source, expected } = await formatCode(migratedCode, zodv3);
+			expect(source).toBe(expected);
+		});
+
+		it("const assertion配列の列挙型をz.enumに変換する", async () => {
+			const { myzod, zodv3 } = await readFixtures("enum-const-assertion");
+			const migratedCode = convertMyzodToZodV3String(myzod);
+			const { source, expected } = await formatCode(migratedCode, zodv3);
+			expect(source).toBe(expected);
+		});
+
 		it("同じバリデーション動作を維持する", async () => {
 			await validateSchemas("enum-basic");
+		});
+
+		it("配列列挙型で同じバリデーション動作を維持する", async () => {
+			await validateSchemas("enum-array");
+		});
+
+		it("const assertion配列列挙型で同じバリデーション動作を維持する", async () => {
+			await validateSchemas("enum-const-assertion");
 		});
 	});
 
