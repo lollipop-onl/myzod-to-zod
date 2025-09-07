@@ -66,6 +66,40 @@ if (result2 instanceof myzod.ValidationError) {
         expect(result.manualIssues).toHaveLength(4); // 2 .try() + 2 instanceof
     });
 
+    it('should detect ValidationError imports requiring manual conversion', () => {
+        const code = `
+import myzod, { ValidationError } from 'myzod';
+
+const schema = myzod.string();
+        `;
+        
+        const sourceFile = createSourceFile(code);
+        const result = migrateMyzodToZodV3WithIssues(sourceFile);
+        
+        expect(result.manualIssues).toHaveLength(1);
+        expect(result.manualIssues[0].type).toBe('validation-error');
+        expect(result.manualIssues[0].description).toBe('Remove ValidationError import and update error handling patterns');
+    });
+
+    it('should detect multiple ValidationError patterns in imports and usage', () => {
+        const code = `
+import myzod, { ValidationError } from 'myzod';
+
+const result = schema.try(data);
+if (result instanceof ValidationError) {
+    console.log('error');
+}
+        `;
+        
+        const sourceFile = createSourceFile(code);
+        const result = migrateMyzodToZodV3WithIssues(sourceFile);
+        
+        expect(result.manualIssues).toHaveLength(3); // import + .try() + instanceof
+        const importIssue = result.manualIssues.find(issue => issue.description.includes('Remove ValidationError import'));
+        expect(importIssue).toBeDefined();
+        expect(importIssue!.type).toBe('validation-error');
+    });
+
     it('should return empty issues for fully automated code', () => {
         const code = `
 import myzod from 'myzod';

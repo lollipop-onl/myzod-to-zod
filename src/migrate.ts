@@ -360,6 +360,9 @@ function transformMyzodReferences(sourceFile: SourceFile, myzodName: string) {
  * Detects patterns that require manual migration
  */
 function detectManualMigrationIssues(sourceFile: SourceFile, issues: ManualMigrationIssue[]) {
+    // Check for ValidationError imports
+    detectValidationErrorImports(sourceFile, issues);
+    
     const callExpressions = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
     
     for (const callExpr of callExpressions) {
@@ -434,6 +437,8 @@ function detectManualMigrationIssues(sourceFile: SourceFile, issues: ManualMigra
     for (const binExpr of binaryExpressions) {
         if (binExpr.getOperatorToken().getKind() === SyntaxKind.InstanceOfKeyword) {
             const right = binExpr.getRight();
+            
+            // Check for both myzod.ValidationError and direct ValidationError patterns
             if (Node.isPropertyAccessExpression(right)) {
                 const rootId = getRootIdentifier(right);
                 const propName = right.getName();
@@ -445,6 +450,48 @@ function detectManualMigrationIssues(sourceFile: SourceFile, issues: ManualMigra
                     issues.push({
                         type: 'validation-error',
                         description: 'Replace instanceof ValidationError with !result.success pattern',
+                        line: lineNumber,
+                        snippet: snippet
+                    });
+                }
+            } else if (Node.isIdentifier(right) && right.getText() === 'ValidationError') {
+                // Direct ValidationError usage (from named import)
+                const lineNumber = binExpr.getStartLineNumber();
+                const snippet = binExpr.getText();
+                
+                issues.push({
+                    type: 'validation-error',
+                    description: 'Replace instanceof ValidationError with !result.success pattern',
+                    line: lineNumber,
+                    snippet: snippet
+                });
+            }
+        }
+    }
+}
+
+/**
+ * Detects ValidationError imports that require manual migration
+ */
+function detectValidationErrorImports(sourceFile: SourceFile, issues: ManualMigrationIssue[]) {
+    const importDeclarations = sourceFile.getImportDeclarations();
+    
+    for (const importDecl of importDeclarations) {
+        const moduleSpecifier = importDecl.getModuleSpecifierValue();
+        
+        if (moduleSpecifier === 'myzod') {
+            const namedImports = importDecl.getNamedImports();
+            
+            for (const namedImport of namedImports) {
+                const importName = namedImport.getName();
+                
+                if (importName === 'ValidationError') {
+                    const lineNumber = namedImport.getStartLineNumber();
+                    const snippet = `{ ${importName} }`;
+                    
+                    issues.push({
+                        type: 'validation-error',
+                        description: 'Remove ValidationError import and update error handling patterns',
                         line: lineNumber,
                         snippet: snippet
                     });

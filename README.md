@@ -127,9 +127,24 @@ type Status = z.infer<typeof statusSchema>;
 
 ## 🔧 Manual Migration Required
 
-While this codemod handles 100% of schema definition patterns automatically, only error handling requires manual attention:
+While this codemod handles 100% of schema definition patterns automatically, error handling requires manual attention:
 
-### Error Handling Patterns
+### 1. ValidationError Imports
+
+**⚠️ Manual Change Required**
+
+```typescript
+// Before
+import myzod, { ValidationError } from 'myzod';
+
+// After (manual fix needed)
+import { z } from 'zod';
+// Remove ValidationError import entirely
+```
+
+**Why:** zod uses a different error handling pattern that doesn't require importing error types.
+
+### 2. Error Handling Patterns
 
 **⚠️ Manual Change Required**
 
@@ -153,9 +168,10 @@ if (!result.success) {
 
 After running the codemod, please:
 
-1. **Review Error Handling**: Update `.try()` calls to `.safeParse()`
-2. **Test Thoroughly**: Run your test suite to catch any behavioral differences
-3. **Update Dependencies**: Remove myzod and ensure zod v3 is installed
+1. **Remove ValidationError Imports**: Remove `{ ValidationError }` from import statements
+2. **Review Error Handling**: Update `.try()` calls to `.safeParse()` and `instanceof` checks
+3. **Test Thoroughly**: Run your test suite to catch any behavioral differences
+4. **Update Dependencies**: Remove myzod and ensure zod v3 is installed
 
 ## 🛠️ Installation & Setup
 
