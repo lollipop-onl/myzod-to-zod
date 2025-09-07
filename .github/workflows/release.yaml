@@ -36,7 +36,7 @@ jobs:
 
       - run: pnpm build
 
-      - run: pnpm release
+      - run: pnpm publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
