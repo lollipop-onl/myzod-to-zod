@@ -37,15 +37,21 @@ async function main() {
             const filePath = sourceFile.getFilePath();
             console.log(`Processing: ${filePath}`);
             
+            const originalContent = sourceFile.getText();
             const migratedContent = migrateMyzodToZodV3(sourceFile);
             
             if (shouldWrite) {
                 fs.writeFileSync(filePath, migratedContent, 'utf-8');
                 console.log(`✅ Updated: ${filePath}`);
             } else {
-                console.log(`--- ${filePath} ---`);
-                console.log(migratedContent);
-                console.log('');
+                // Check if content changed
+                if (originalContent === migratedContent) {
+                    console.log(`📄 No changes needed: ${filePath}`);
+                } else {
+                    console.log(`--- ${filePath} ---`);
+                    console.log(migratedContent);
+                    console.log('');
+                }
             }
         }
         
