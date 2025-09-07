@@ -123,6 +123,11 @@ function displayHelpReference() {
 	console.log(
 		"   https://github.com/lollipop-onl/myzod-to-zod#manual-migration-required",
 	);
+	console.log("\n📖 For error handling migration patterns:");
+	console.log("   • docs/error-handling-migration.md");
 }
 
-export { migrateMyzodToZodV3 } from "./migrate.js";
+export {
+	migrateMyzodToZodV3,
+	migrateMyzodToZodV3WithIssues,
+} from "./migrate.js";

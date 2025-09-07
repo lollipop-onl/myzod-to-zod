@@ -141,13 +141,21 @@ function handleSpecialTransformations(
 		callExpr: CallExpression;
 		args: string[];
 	}[] = [];
-	const enumTransformations: { callExpr: CallExpression; enumArg: string; isArray: boolean }[] =
-		[];
+	const enumTransformations: {
+		callExpr: CallExpression;
+		enumArg: string;
+		isArray: boolean;
+	}[] = [];
 	const collectErrorsTransformations: { callExpr: CallExpression }[] = [];
 	const allowUnknownKeysTransformations: { callExpr: CallExpression }[] = [];
 	const dictionaryTransformations: {
 		callExpr: CallExpression;
 		schemaArg: string;
+	}[] = [];
+	const checkTransformations: {
+		callExpr: CallExpression;
+		objectExpr: string;
+		args: string;
 	}[] = [];
 
 	for (const callExpr of callExpressions) {
@@ -157,9 +165,20 @@ function handleSpecialTransformations(
 			const rootId = getRootIdentifier(expression);
 
 			// Only transform if it's part of a myzod chain
-			if (rootId === myzodName) {
-				const methodName = expression.getName();
+			const methodName = expression.getName();
 
+			// Handle check method separately - it can be called on any schema object
+			if (methodName === "check") {
+				const objectExpr = expression.getExpression().getText();
+				const args = callExpr
+					.getArguments()
+					.map((arg) => arg.getText())
+					.join(", ");
+				checkTransformations.push({ callExpr, objectExpr, args });
+				continue;
+			}
+
+			if (rootId === myzodName) {
 				// Handle coerce transformation specially
 				if (methodName === "coerce") {
 					const baseExpression = expression.getExpression();
@@ -201,25 +220,29 @@ function handleSpecialTransformations(
 					if (args.length === 1) {
 						const enumArg = args[0].getText();
 						// Check if the argument is an array literal or const assertion array
-						let isArray = Node.isArrayLiteralExpression(args[0]) || 
-									  (Node.isAsExpression(args[0]) && 
-									   Node.isArrayLiteralExpression(args[0].getExpression()) && 
-									   args[0].getTypeNode()?.getText() === "const");
+						let isArray =
+							Node.isArrayLiteralExpression(args[0]) ||
+							(Node.isAsExpression(args[0]) &&
+								Node.isArrayLiteralExpression(args[0].getExpression()) &&
+								args[0].getTypeNode()?.getText() === "const");
 
 						// If it's an identifier, look for its variable declaration in the same file
 						if (!isArray && Node.isIdentifier(args[0])) {
 							const identifierName = args[0].getText();
 							const variableDeclarations = sourceFile.getVariableDeclarations();
-							
+
 							for (const varDecl of variableDeclarations) {
 								if (varDecl.getName() === identifierName) {
 									const initializer = varDecl.getInitializer();
-									if (initializer && (
-										Node.isArrayLiteralExpression(initializer) ||
-										(Node.isAsExpression(initializer) && 
-										 Node.isArrayLiteralExpression(initializer.getExpression()) &&
-										 initializer.getTypeNode()?.getText() === "const")
-									)) {
+									if (
+										initializer &&
+										(Node.isArrayLiteralExpression(initializer) ||
+											(Node.isAsExpression(initializer) &&
+												Node.isArrayLiteralExpression(
+													initializer.getExpression(),
+												) &&
+												initializer.getTypeNode()?.getText() === "const"))
+									) {
 										isArray = true;
 										break;
 									}
@@ -268,7 +291,9 @@ function handleSpecialTransformations(
 
 	// Apply enum transformations
 	for (const { callExpr, enumArg, isArray } of enumTransformations) {
-		const newExpression = isArray ? `z.enum(${enumArg})` : `z.nativeEnum(${enumArg})`;
+		const newExpression = isArray
+			? `z.enum(${enumArg})`
+			: `z.nativeEnum(${enumArg})`;
 		callExpr.replaceWithText(newExpression);
 	}
 
@@ -288,7 +313,7 @@ function handleSpecialTransformations(
 		if (callExpr.wasForgotten()) {
 			continue;
 		}
-		
+
 		const expression = callExpr.getExpression();
 		if (Node.isPropertyAccessExpression(expression)) {
 			const baseExpression = expression.getExpression();
@@ -311,6 +336,12 @@ function handleSpecialTransformations(
 		}
 
 		const newExpression = `z.record(${recordArg})`;
+		callExpr.replaceWithText(newExpression);
+	}
+
+	// Apply check transformations (check -> safeParse().success)
+	for (const { callExpr, objectExpr, args } of checkTransformations) {
+		const newExpression = `${objectExpr}.safeParse(${args}).success`;
 		callExpr.replaceWithText(newExpression);
 	}
 }
@@ -508,14 +539,15 @@ function transformMyzodReferences(sourceFile: SourceFile, myzodName: string) {
 			if (rootId === myzodName || rootId === "z") {
 				const methodName = expression.getName();
 
-				// Skip coerce, literals, enum, collectErrors, allowUnknownKeys, and dictionary - already handled in special transformations
+				// Skip coerce, literals, enum, collectErrors, allowUnknownKeys, dictionary, and check - already handled in special transformations
 				if (
 					methodName === "coerce" ||
 					methodName === "literals" ||
 					methodName === "enum" ||
 					methodName === "collectErrors" ||
 					methodName === "allowUnknownKeys" ||
-					methodName === "dictionary"
+					methodName === "dictionary" ||
+					methodName === "check"
 				) {
 					continue;
 				}
@@ -554,7 +586,7 @@ function detectManualMigrationIssues(
 	for (const callExpr of callExpressions) {
 		const expression = callExpr.getExpression();
 
-		// Check for .try() method calls
+		// Check for .try() and .check() method calls
 		if (Node.isPropertyAccessExpression(expression)) {
 			const methodName = expression.getName();
 

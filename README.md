@@ -115,6 +115,7 @@ type Status = z.infer<typeof statusSchema>;
 #### Advanced Transformations
 - `.withPredicate()` → `.refine()` (Custom validation)
 - `.map()` → `.transform()` (Value transformation)
+- `.check()` → `.safeParse().success` (Boolean validation)
 - `.partial()` → `.partial()` (Object partial types)
 - `.collectErrors()` → *removed* (zod collects errors by default)
 - `myzod.number().coerce()` → `z.coerce.number()` (Structural change)
@@ -164,7 +165,8 @@ if (!result.success) {
 
 **Why:** myzod and zod have fundamentally different error handling APIs.
 
-📖 **For detailed error handling migration patterns and examples, see our [Error Handling Migration Guide](./docs/error-handling-migration.md)**
+
+📖 **For detailed error handling migration patterns and examples, see our [Error Handling Migration Guide](./docs/error-handling-migration.md)** - ValidationError and .try() patterns
 
 ## 📋 Post-Migration Checklist
 

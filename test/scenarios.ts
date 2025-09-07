@@ -423,6 +423,40 @@ describe("myzod から zod への変換", () => {
 			await validateSchemas("type-base-generic");
 		});
 	});
+
+	// TDD GREEN: .check() method transformation
+	describe("checkメソッドの変換", () => {
+		it("check()メソッドをsafeParse().successに変換する", async () => {
+			// Read input and expected files directly for transformation test
+			const [input, expected] = await Promise.all([
+				readFile(
+					new URL(
+						`./__scenarios__/check-method-basic/input.ts`,
+						import.meta.url,
+					),
+					"utf-8",
+				),
+				readFile(
+					new URL(
+						`./__scenarios__/check-method-basic/expected.ts`,
+						import.meta.url,
+					),
+					"utf-8",
+				),
+			]);
+
+			const migratedCode = convertMyzodToZodV3String(input);
+			const { source, expected: formattedExpected } = await formatCode(
+				migratedCode,
+				expected,
+			);
+			expect(source).toBe(formattedExpected);
+		});
+
+		it("同じバリデーション動作を維持する", async () => {
+			await validateSchemas("check-method-basic");
+		});
+	});
 });
 
 async function validateSchemas(testCase: string) {
