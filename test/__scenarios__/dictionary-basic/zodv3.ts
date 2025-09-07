@@ -11,7 +11,7 @@ const complexDictionary = z.record(
   z.object({
     name: z.string(),
     age: z.number()
-  }).optional()
+  }).strict().optional()
 );
 
 export { stringDictionary, optionalStringDictionary, complexDictionary };

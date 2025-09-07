@@ -15,7 +15,7 @@ if (schema.safeParse('test').success) {
 const userSchema = z.object({
   name: z.string().min(1),
   email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
-});
+}).strict();
 
 const userData = { name: 'John', email: 'john@example.com' };
 const userIsValid = userSchema.safeParse(userData).success;
