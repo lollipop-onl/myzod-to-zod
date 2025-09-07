@@ -23,6 +23,9 @@ export function migrateMyzodToZodV3(sourceFile: SourceFile): string {
         // First handle special transformations that require structural changes
         handleSpecialTransformations(sourceFile, myzodName);
         
+        // Transform type references
+        transformTypeReferences(sourceFile);
+        
         // Then transform basic myzod references in the file
         transformMyzodReferences(sourceFile, myzodName);
     }
@@ -127,6 +130,34 @@ function handleSpecialTransformations(sourceFile: SourceFile, myzodName: string)
     for (const { callExpr, enumArg } of enumTransformations) {
         const newExpression = `z.nativeEnum(${enumArg})`;
         callExpr.replaceWithText(newExpression);
+    }
+}
+
+/**
+ * Transforms type references: myzod.Infer<T> -> z.infer<typeof T>
+ */
+function transformTypeReferences(sourceFile: SourceFile) {
+    const typeReferences = sourceFile.getDescendantsOfKind(SyntaxKind.TypeReference);
+    
+    for (const typeRef of typeReferences) {
+        const typeName = typeRef.getTypeName();
+        
+        // Handle myzod.Infer<T> pattern
+        if (Node.isQualifiedName(typeName)) {
+            const left = typeName.getLeft();
+            const right = typeName.getRight();
+            
+            if (Node.isIdentifier(left) && left.getText() === 'myzod' && 
+                Node.isIdentifier(right) && right.getText() === 'Infer') {
+                
+                const typeArgs = typeRef.getTypeArguments();
+                if (typeArgs.length === 1) {
+                    const schemaType = typeArgs[0].getText();
+                    // Replace myzod.Infer<typeof schema> with z.infer<typeof schema>
+                    typeRef.replaceWithText(`z.infer<typeof ${schemaType.replace(/typeof\s+/, '')}>`);
+                }
+            }
+        }
     }
 }
 
