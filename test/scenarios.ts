@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {readFile} from "node:fs/promises";
 import {Project} from "ts-morph";
 import * as prettier from "prettier";
+import { convertMyzodToZodV3String } from "../src/migrate.js";
 
 describe('myzod to zod conversion', () => {
     // TDD Step 1 (RED): Start with simplest test case
@@ -9,7 +10,7 @@ describe('myzod to zod conversion', () => {
         it('should convert basic string schema', async () => {
             const { myzod, zodv3 } = await readFixtures('basic-string');
             
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             
             expect(source).toBe(expected);
@@ -25,7 +26,7 @@ describe('myzod to zod conversion', () => {
         it('should convert string with predicate to refine', async () => {
             const { myzod, zodv3 } = await readFixtures('predicate-string');
             
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             
             // This should fail until we implement .withPredicate -> .refine conversion
@@ -41,7 +42,7 @@ describe('myzod to zod conversion', () => {
     describe('basic-number conversion', () => {
         it('should convert basic number schema', async () => {
             const { myzod, zodv3 } = await readFixtures('basic-number');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -54,7 +55,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('basic-boolean conversion', () => {
         it('should convert basic boolean schema', async () => {
             const { myzod, zodv3 } = await readFixtures('basic-boolean');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -67,7 +68,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('basic-literal conversion', () => {
         it('should convert basic literal schema', async () => {
             const { myzod, zodv3 } = await readFixtures('basic-literal');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -80,7 +81,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('basic-object conversion', () => {
         it('should convert basic object schema', async () => {
             const { myzod, zodv3 } = await readFixtures('basic-object');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -93,7 +94,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('basic-array conversion', () => {
         it('should convert basic array schema', async () => {
             const { myzod, zodv3 } = await readFixtures('basic-array');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -106,7 +107,7 @@ describe('myzod to zod conversion', () => {
     describe('map-string-to-length conversion', () => {
         it('should convert map to transform', async () => {
             const { myzod, zodv3 } = await readFixtures('map-string-to-length');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -119,7 +120,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('union-basic conversion', () => {
         it('should convert union schema', async () => {
             const { myzod, zodv3 } = await readFixtures('union-basic');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -132,7 +133,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('tuple-basic conversion', () => {
         it('should convert tuple schema', async () => {
             const { myzod, zodv3 } = await readFixtures('tuple-basic');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -145,7 +146,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('record-basic conversion', () => {
         it('should convert record schema', async () => {
             const { myzod, zodv3 } = await readFixtures('record-basic');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -158,7 +159,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('string-min-max conversion', () => {
         it('should convert string with min/max constraints', async () => {
             const { myzod, zodv3 } = await readFixtures('string-min-max');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -171,7 +172,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('string-pattern conversion', () => {
         it('should convert string with pattern', async () => {
             const { myzod, zodv3 } = await readFixtures('string-pattern');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -184,7 +185,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('string-default conversion', () => {
         it('should convert string with default value', async () => {
             const { myzod, zodv3 } = await readFixtures('string-default');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -197,7 +198,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('optional-basic conversion', () => {
         it('should convert optional schema', async () => {
             const { myzod, zodv3 } = await readFixtures('optional-basic');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -210,7 +211,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('nullable-basic conversion', () => {
         it('should convert nullable schema', async () => {
             const { myzod, zodv3 } = await readFixtures('nullable-basic');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -223,7 +224,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('number-coerce conversion', () => {
         it('should convert number coercion', async () => {
             const { myzod, zodv3 } = await readFixtures('number-coerce');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -236,7 +237,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('object-partial conversion', () => {
         it('should convert partial object', async () => {
             const { myzod, zodv3 } = await readFixtures('object-partial');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -249,7 +250,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('array-min-max conversion', () => {
         it('should convert array with min/max constraints', async () => {
             const { myzod, zodv3 } = await readFixtures('array-min-max');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -262,7 +263,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('intersection-basic conversion', () => {
         it('should convert intersection schema', async () => {
             const { myzod, zodv3 } = await readFixtures('intersection-basic');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -275,7 +276,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('literals-multiple conversion', () => {
         it('should convert multiple literals', async () => {
             const { myzod, zodv3 } = await readFixtures('literals-multiple');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -288,7 +289,7 @@ describe('myzod to zod conversion', () => {
     describe.skip('enum-basic conversion', () => {
         it('should convert enum schema', async () => {
             const { myzod, zodv3 } = await readFixtures('enum-basic');
-            const migratedCode = convertMyzodToZodV3(myzod);
+            const migratedCode = convertMyzodToZodV3String(myzod);
             const { source, expected } = await formatCode(migratedCode, zodv3);
             expect(source).toBe(expected);
         });
@@ -356,18 +357,6 @@ async function validateSchemas(testCase: string) {
     }
 }
 
-function convertMyzodToZodV3(myzodCode: string): string {
-    // Simple string-based transformation for basic myzod -> zod v3 migration
-    // Future: Will be enhanced with AST transformations using ts-morph
-    return myzodCode
-        // Convert import statement: myzod -> zod
-        .replace(/import myzod from 'myzod';/g, "import { z } from 'zod';")
-        // Convert namespace: myzod -> z
-        .replace(/myzod\./g, 'z.')
-        // Convert method names: myzod API -> zod API
-        .replace(/\.withPredicate\(/g, '.refine(')
-        .replace(/\.map\(/g, '.transform(');
-}
 
 async function readFixtures(name: string) {
     const [myzod, zodv3] = await Promise.all(
