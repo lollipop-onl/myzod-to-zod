@@ -148,7 +148,6 @@ function handleSpecialTransformations(
 	}[] = [];
 	const collectErrorsTransformations: { callExpr: CallExpression }[] = [];
 	const allowUnknownKeysTransformations: { callExpr: CallExpression }[] = [];
-	const objectTransformations: { callExpr: CallExpression }[] = [];
 	const dictionaryTransformations: {
 		callExpr: CallExpression;
 		schemaArg: string;
@@ -180,11 +179,6 @@ function handleSpecialTransformations(
 			}
 
 			if (rootId === myzodName) {
-				// Handle object transformation specially - we need to add .strict() later
-				if (methodName === "object") {
-					objectTransformations.push({ callExpr });
-				}
-
 				// Handle coerce transformation specially
 				if (methodName === "coerce") {
 					const baseExpression = expression.getExpression();
@@ -312,7 +306,7 @@ function handleSpecialTransformations(
 		}
 	}
 
-	// Apply allowUnknownKeys transformations (convert to .strip())
+	// Apply allowUnknownKeys transformations (remove the method call)
 	// Process in reverse order to handle nested cases correctly
 	for (const { callExpr } of allowUnknownKeysTransformations.reverse()) {
 		// Check if the node is still valid (not already removed)
@@ -323,37 +317,7 @@ function handleSpecialTransformations(
 		const expression = callExpr.getExpression();
 		if (Node.isPropertyAccessExpression(expression)) {
 			const baseExpression = expression.getExpression();
-			callExpr.replaceWithText(`${baseExpression.getText()}.strip()`);
-		}
-	}
-
-	// Apply object transformations (add .strict() to object calls that don't have allowUnknownKeys)
-	// Process in reverse order to handle nested cases correctly
-	for (const { callExpr } of objectTransformations.reverse()) {
-		// Check if the node is still valid (not already removed)
-		if (callExpr.wasForgotten()) {
-			continue;
-		}
-
-		// Check if this object() call is already followed by .strip() (former allowUnknownKeys)
-		// by examining the parent chain
-		let hasStripCall = false;
-		let parent = callExpr.getParent();
-		
-		// Look for immediate .strip() call
-		if (Node.isPropertyAccessExpression(parent)) {
-			const grandParent = parent.getParent();
-			if (Node.isCallExpression(grandParent)) {
-				const methodName = parent.getName();
-				if (methodName === "strip") {
-					hasStripCall = true;
-				}
-			}
-		}
-
-		// Only add .strict() if there's no .strip() call
-		if (!hasStripCall) {
-			callExpr.replaceWithText(`${callExpr.getText()}.strict()`);
+			callExpr.replaceWithText(baseExpression.getText());
 		}
 	}
 

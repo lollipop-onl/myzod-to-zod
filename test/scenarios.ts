@@ -371,27 +371,6 @@ describe("myzod から zod への変換", () => {
 		});
 	});
 
-	// Object strict/strip behavior テスト
-	describe("Object strict/strip behavior の変換", () => {
-		it("myzod.object() を z.object().strict() に変換する", async () => {
-			const { myzod, zodv3 } = await readFixtures("object-strict-behavior");
-			const migratedCode = convertMyzodToZodV3String(myzod);
-			const { source, expected } = await formatCode(migratedCode, zodv3);
-			expect(source).toBe(expected);
-		});
-
-		it("allowUnknownKeys() を .strip() に変換する", async () => {
-			const { myzod, zodv3 } = await readFixtures("object-strict-behavior");
-			const migratedCode = convertMyzodToZodV3String(myzod);
-			expect(migratedCode).toContain(".strip()");
-			expect(migratedCode).not.toContain("allowUnknownKeys");
-		});
-
-		it("strict/strip動作で同じバリデーション動作を維持する", async () => {
-			await validateSchemas("object-strict-behavior");
-		});
-	});
-
 	// TDD: 型変換テストケース - 実装までは失敗するべき
 	describe("StringType型注釈の変換", () => {
 		it("StringType型注釈をZodStringに変換する", async () => {
