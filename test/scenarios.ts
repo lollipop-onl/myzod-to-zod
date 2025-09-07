@@ -260,7 +260,7 @@ describe('myzod から zod への変換', () => {
         });
     });
     
-    describe.skip('基本交差型の変換', () => {
+    describe('基本交差型の変換', () => {
         it('交差型スキーマを変換する', async () => {
             const { myzod, zodv3 } = await readFixtures('intersection-basic');
             const migratedCode = convertMyzodToZodV3String(myzod);
@@ -273,7 +273,7 @@ describe('myzod から zod への変換', () => {
         });
     });
     
-    describe.skip('複数リテラルの変換', () => {
+    describe('複数リテラルの変換', () => {
         it('複数リテラルを変換する', async () => {
             const { myzod, zodv3 } = await readFixtures('literals-multiple');
             const migratedCode = convertMyzodToZodV3String(myzod);
@@ -286,7 +286,7 @@ describe('myzod から zod への変換', () => {
         });
     });
     
-    describe.skip('基本列挙型の変換', () => {
+    describe('基本列挙型の変換', () => {
         it('列挙型スキーマを変換する', async () => {
             const { myzod, zodv3 } = await readFixtures('enum-basic');
             const migratedCode = convertMyzodToZodV3String(myzod);

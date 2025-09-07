@@ -51,8 +51,10 @@ function transformImportStatement(importDeclaration: any) {
 function handleSpecialTransformations(sourceFile: SourceFile, myzodName: string) {
     const callExpressions = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
     
-    // Collect coerce transformations first to avoid issues with node invalidation
+    // Collect special transformations first to avoid issues with node invalidation
     const coerceTransformations: { callExpr: CallExpression, typeName: string }[] = [];
+    const literalsTransformations: { callExpr: CallExpression, args: string[] }[] = [];
+    const enumTransformations: { callExpr: CallExpression, enumArg: string }[] = [];
     
     for (const callExpr of callExpressions) {
         const expression = callExpr.getExpression();
@@ -82,6 +84,28 @@ function handleSpecialTransformations(sourceFile: SourceFile, myzodName: string)
                         }
                     }
                 }
+                
+                // Handle literals transformation specially
+                if (methodName === 'literals') {
+                    const args = callExpr.getArguments();
+                    const literalValues = args.map(arg => {
+                        if (Node.isStringLiteral(arg)) {
+                            return `"${arg.getLiteralValue()}"`;
+                        }
+                        return arg.getText();
+                    });
+                    
+                    literalsTransformations.push({ callExpr, args: literalValues });
+                }
+                
+                // Handle enum transformation specially
+                if (methodName === 'enum') {
+                    const args = callExpr.getArguments();
+                    if (args.length === 1) {
+                        const enumArg = args[0].getText();
+                        enumTransformations.push({ callExpr, enumArg });
+                    }
+                }
             }
         }
     }
@@ -89,6 +113,19 @@ function handleSpecialTransformations(sourceFile: SourceFile, myzodName: string)
     // Apply coerce transformations
     for (const { callExpr, typeName } of coerceTransformations) {
         const newExpression = `z.coerce.${typeName}()`;
+        callExpr.replaceWithText(newExpression);
+    }
+    
+    // Apply literals transformations
+    for (const { callExpr, args } of literalsTransformations) {
+        const literalUnions = args.map(arg => `z.literal(${arg})`).join(', ');
+        const newExpression = `z.union([${literalUnions}])`;
+        callExpr.replaceWithText(newExpression);
+    }
+    
+    // Apply enum transformations
+    for (const { callExpr, enumArg } of enumTransformations) {
+        const newExpression = `z.nativeEnum(${enumArg})`;
         callExpr.replaceWithText(newExpression);
     }
 }
@@ -122,8 +159,8 @@ function transformMyzodReferences(sourceFile: SourceFile, myzodName: string) {
             if (rootId === myzodName || rootId === 'z') {
                 const methodName = expression.getName();
                 
-                // Skip coerce - already handled in special transformations
-                if (methodName === 'coerce') {
+                // Skip coerce, literals, and enum - already handled in special transformations
+                if (methodName === 'coerce' || methodName === 'literals' || methodName === 'enum') {
                     continue;
                 }
                 
