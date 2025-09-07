@@ -338,8 +338,8 @@ function handleSpecialTransformations(
 		// Check if this object() call is already followed by .strip() (former allowUnknownKeys)
 		// by examining the parent chain
 		let hasStripCall = false;
-		let parent = callExpr.getParent();
-		
+		const parent = callExpr.getParent();
+
 		// Look for immediate .strip() call
 		if (Node.isPropertyAccessExpression(parent)) {
 			const grandParent = parent.getParent();
