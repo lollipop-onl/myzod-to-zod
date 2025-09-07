@@ -3,8 +3,8 @@
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/lollipop-onl/myzod-to-zod)
 
 [![npm version](https://img.shields.io/npm/v/@lollipop-onl/myzod-to-zod.svg)](https://www.npmjs.com/package/@lollipop-onl/myzod-to-zod)
-[![release](https://github.com/lollipop-onl/myzod-to-zod/actions/workflows/release.yml/badge.svg)](https://github.com/lollipop-onl/myzod-to-zod/actions/workflows/release.yml)
-[![test](https://github.com/lollipop-onl/myzod-to-zod/actions/workflows/test.yml/badge.svg)](https://github.com/lollipop-onl/myzod-to-zod/actions/workflows/test.yml)
+[![Release](https://github.com/lollipop-onl/myzod-to-zod/actions/workflows/release.yaml/badge.svg)](https://github.com/lollipop-onl/myzod-to-zod/actions/workflows/release.yaml)
+[![Tests](https://github.com/lollipop-onl/myzod-to-zod/actions/workflows/test.yaml/badge.svg)](https://github.com/lollipop-onl/myzod-to-zod/actions/workflows/test.yaml)
 
 A codemod to automatically migrate your codebase from [myzod](https://github.com/davidmdm/myzod) to [zod v3](https://github.com/colinhacks/zod).
 

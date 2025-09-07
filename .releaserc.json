@@ -1,0 +1,25 @@
+{
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "parserOpts": {
+          "headerPattern": "^(?:\\p{Emoji_Presentation}|\\p{Emoji_Modifier_Base}|\\p{Emoji_Component})?\\s*(?<type>\\w*):\\s(?<subject>.*)$",
+          "headerCorrespondence": ["emoji", "type", "subject"]
+        }
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "parserOpts": {
+          "headerPattern": "^(?:\\p{Emoji_Presentation}|\\p{Emoji_Modifier_Base}|\\p{Emoji_Component})?\\s*(?<type>\\w*):\\s(?<subject>.*)$",
+          "headerCorrespondence": ["emoji", "type", "subject"]
+        }
+      }
+    ],
+    "@semantic-release/changelog",
+    "@semantic-release/npm",
+    "@semantic-release/github"
+  ]
+}
