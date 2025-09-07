@@ -533,12 +533,20 @@ function transformMyzodReferences(sourceFile: SourceFile, myzodName: string) {
 		const expression = callExpr.getExpression();
 
 		if (Node.isPropertyAccessExpression(expression)) {
+			const methodName = expression.getName();
+
+			// Handle shape() method - convert to property access (applies to any object, not just direct myzod calls)
+			if (methodName === "shape") {
+				// Replace the entire CallExpression with PropertyAccessExpression
+				const objectExpression = expression.getExpression();
+				callExpr.replaceWithText(`${objectExpression.getText()}.shape`);
+				continue;
+			}
+
 			const rootId = getRootIdentifier(expression);
 
 			// Only transform if it's part of a myzod chain
 			if (rootId === myzodName || rootId === "z") {
-				const methodName = expression.getName();
-
 				// Skip coerce, literals, enum, collectErrors, allowUnknownKeys, dictionary, and check - already handled in special transformations
 				if (
 					methodName === "coerce" ||

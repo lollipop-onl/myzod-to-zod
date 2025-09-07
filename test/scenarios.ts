@@ -457,6 +457,17 @@ describe("myzod から zod への変換", () => {
 			await validateSchemas("check-method-basic");
 		});
 	});
+
+	describe("object().shape()の変換", () => {
+		it("object().shape()メソッドをshapeプロパティに変換する", async () => {
+			const { myzod, zodv3 } = await readFixtures("object-shape-basic");
+
+			const migratedCode = convertMyzodToZodV3String(myzod);
+			const { source, expected } = await formatCode(migratedCode, zodv3);
+
+			expect(source).toBe(expected);
+		});
+	});
 });
 
 async function validateSchemas(testCase: string) {

@@ -31,7 +31,7 @@ npx vitest run test/scenarios.ts
 
 The project implements t-wada TDD principles with a **Red-Green-Refactor** cycle:
 
-1. **✅ COMPLETED**: **68/68 tests passing (100% completion)**
+1. **✅ COMPLETED**: **75/75 tests passing (100% completion)**
 2. **✅ Implemented**: Complete AST-based transformations with ts-morph
 3. **✅ All Tests Active**: No more `describe.skip()` - all scenarios implemented
 4. **✅ Implementation Complete**: Full automation of myzod to zod v3 conversion
@@ -57,14 +57,14 @@ The project implements t-wada TDD principles with a **Red-Green-Refactor** cycle
 ### Migration Scope & Limitations
 
 Based on research in `reports/01_エグゼクティブサマリー.md`:
-- **🎉 100% completion achieved** (68/68 tests passing)
+- **🎉 100% completion achieved** (75/75 tests passing)
 - **✅ Target exceeded**: 100% automation achieved (beyond original 90-95% goal)
 - **✅ All challenges solved**: Type coercion, intersection types, complex literals, enums
 - **✅ Complete automation**: All supported transformation patterns now automated
 
 ### Current Implementation Status
 
-**✅ All Implemented (68/68 tests passing - 100% Complete!)**:
+**✅ All Implemented (75/75 tests passing - 100% Complete!)**:
 ```typescript
 // Import conversion
 import myzod from 'myzod' → import { z } from 'zod'
@@ -76,6 +76,7 @@ myzod.string/number/boolean/literal/object/array/union/tuple/record() → z.*()
 .withPredicate() → .refine()
 .map() → .transform()
 .pattern() → .regex()
+.shape() → .shape
 .allowUnknownKeys() → .passthrough()
 
 // Structural transformations: All complete
@@ -127,7 +128,8 @@ const schema: Type<T> → const schema: ZodType<T>
 - Added new allowUnknownKeys transformation (60/60 tests)
 - Added type reference transformations (68/68 tests)
 - Added intelligent enum argument detection (72/72 tests)
-- Achieved 100% test coverage (72/72 tests passing)
+- Added object().shape() transformation (75/75 tests)
+- Achieved 100% test coverage (75/75 tests passing)
 
 **Implementation is now complete and ready for production use!**
 
@@ -159,7 +161,7 @@ node dist/index.js "src/**/*.ts"
 # Apply transformations
 node dist/index.js "src/**/*.ts" --write
 
-# Run all 72 tests (100% passing)
+# Run all 75 tests (100% passing)
 npm test
 
 # Type checking
@@ -174,7 +176,7 @@ npx myzod-to-zod "src/**/*.ts" --write
 🎉 **COMPLETED** - This codemod is fully implemented and ready for production use!
 
 **Key Achievements:**
-- ✅ 72/72 tests passing (100% completion)
+- ✅ 75/75 tests passing (100% completion)
 - ✅ Complete AST-based transformation engine with intelligent enum argument detection
 - ✅ CLI tool with preview and write modes
 - ✅ Comprehensive documentation and test coverage
@@ -193,6 +195,7 @@ The codemod can now be used to automatically migrate real myzod codebases to zod
 - **allowUnknownKeys Support**: Added transformation for `myzod.allowUnknownKeys()` → `z.passthrough()`
 - **Type Mapping Research**: Comprehensive analysis of myzod → zod type correspondences completed
 - **Type Reference Transformations**: Implemented StringType, NumberType, ObjectType, and Type<T> transformations (72/72 tests passing)
+- **Object Shape Access**: Implemented object().shape() → object().shape transformation (75/75 tests passing)
 
 ### 🎯 Next Implementation Priority
 
@@ -232,10 +235,10 @@ The core type transformations are now complete. Remaining utility types could be
 **✅ Phase 2 Completed: TDD Implementation Cycle**
 1. **✅ Red**: Created failing tests for each type transformation (68 tests total)
 2. **✅ Green**: Implemented AST logic in `src/migrate.ts` for type transformations
-3. **✅ Refactor**: Optimized code with no regressions (68/68 tests passing)
+3. **✅ Refactor**: Optimized code with no regressions (75/75 tests passing)
 
 **✅ Phase 3 Completed: Integration & Documentation**
-- ✅ Updated transformation count in documentation (68/68 tests)
+- ✅ Updated transformation count in documentation (75/75 tests)
 - ✅ Added usage examples for type transformations
 - ✅ Ready for validation against real-world codebases
 
@@ -258,7 +261,7 @@ The core type transformations are now complete. Remaining utility types could be
 - Edge cases in complex type compositions (unions, intersections with types)
 
 ### 📊 Achieved Impact
-- **Test Coverage**: Added 12 additional test scenarios (60→72 tests, +20% increase)
+- **Test Coverage**: Added 15 additional test scenarios (60→75 tests, +25% increase)
 - **Automation Level**: Achieved 100% automation for core type reference migrations and intelligent enum detection
 - **User Experience**: Eliminated manual type annotation updates and enum transformation decisions
 
@@ -269,6 +272,6 @@ The implementation now provides comprehensive automation covering:
 - ✅ Import statement type references (automatic type import transformation)
 - ✅ Generic type constraints and parameters (Type<T> → ZodType<T>)
 - ✅ Intelligent enum argument detection (array vs enum object distinction)
-- ✅ Development-time type checking compatibility (72/72 tests passing)
+- ✅ Development-time type checking compatibility (75/75 tests passing)
 
 **No known limitations remain for common use cases!**

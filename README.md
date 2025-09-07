@@ -59,6 +59,9 @@ const validatedSchema = myzod.string().withPredicate(
   'String must not be empty'
 );
 
+// Schema shape access
+const userShape = userSchema.shape();
+
 // Type inference
 type User = myzod.Infer<typeof userSchema>;
 type Status = myzod.Infer<typeof statusSchema>;
@@ -82,6 +85,9 @@ const validatedSchema = z.string().refine(
   s => s.length > 0,
   'String must not be empty'
 );
+
+// Schema shape access
+const userShape = userSchema.shape;
 
 // Type inference
 type User = z.infer<typeof userSchema>;
@@ -116,6 +122,7 @@ type Status = z.infer<typeof statusSchema>;
 - `.withPredicate()` → `.refine()` (Custom validation)
 - `.map()` → `.transform()` (Value transformation)
 - `.check()` → `.safeParse().success` (Boolean validation)
+- `.shape()` → `.shape` (Schema shape access)
 - `.partial()` → `.partial()` (Object partial types)
 - `.collectErrors()` → *removed* (zod collects errors by default)
 - `myzod.number().coerce()` → `z.coerce.number()` (Structural change)
@@ -252,7 +259,7 @@ myzod-to-zod/
 │   └── myzod-node.ts     # AST utilities
 ├── test/                 # Test suite
 │   ├── scenarios.ts      # Main test file
-│   └── __scenarios__/    # 44 test cases with README
+│   └── __scenarios__/    # 45 test cases with README
 └── docs/                 # Developer documentation
     ├── implementation-guide.md           # AST architecture guide
     ├── api-transformation-reference.md   # Complete transformation patterns
