@@ -278,36 +278,6 @@ function handleSpecialTransformations(
 						dictionaryTransformations.push({ callExpr, schemaArg });
 					}
 				}
-
-				// Handle intersection transformation specially
-				if (methodName === "intersection") {
-					// For intersection, we need to remove .strict() from the component schemas
-					// to match myzod's behavior
-					const args = callExpr.getArguments();
-					for (const arg of args) {
-						// Find object calls within the intersection arguments and mark them
-						// to not receive .strict() treatment
-						const objectCalls = arg.getDescendantsOfKind(
-							SyntaxKind.CallExpression,
-						);
-						for (const objectCall of objectCalls) {
-							const expr = objectCall.getExpression();
-							if (Node.isPropertyAccessExpression(expr)) {
-								const rootId = getRootIdentifier(expr);
-								const methodName = expr.getName();
-								if (rootId === myzodName && methodName === "object") {
-									// Remove this from object transformations to prevent .strict() addition
-									const index = objectTransformations.findIndex(
-										(t) => t.callExpr === objectCall,
-									);
-									if (index >= 0) {
-										objectTransformations.splice(index, 1);
-									}
-								}
-							}
-						}
-					}
-				}
 			}
 		}
 	}
@@ -365,31 +335,23 @@ function handleSpecialTransformations(
 			continue;
 		}
 
-		// Check if this specific object() call has .strip() in its own method chain
-		// This should only check the immediate chain from this object, not parent chains
+		// Check if this object() call is already followed by .strip() (former allowUnknownKeys)
+		// by examining the parent chain
 		let hasStripCall = false;
+		const parent = callExpr.getParent();
 
-		// Check if this specific object call is directly followed by method chaining that includes .strip()
-		// We need to look at the parent chain only if it's part of THIS object's method chain
-		let currentParent = callExpr.getParent();
-
-		// Look for .strip() only in the direct method chain of this object call
-		while (currentParent && Node.isPropertyAccessExpression(currentParent)) {
-			if (currentParent.getName() === "strip") {
-				hasStripCall = true;
-				break;
-			}
-
-			// Move to the next level in the chain
-			const nextLevel = currentParent.getParent();
-			if (Node.isCallExpression(nextLevel)) {
-				currentParent = nextLevel.getParent();
-			} else {
-				break;
+		// Look for immediate .strip() call
+		if (Node.isPropertyAccessExpression(parent)) {
+			const grandParent = parent.getParent();
+			if (Node.isCallExpression(grandParent)) {
+				const methodName = parent.getName();
+				if (methodName === "strip") {
+					hasStripCall = true;
+				}
 			}
 		}
 
-		// Only add .strict() if there's no .strip() call in this object's direct chain
+		// Only add .strict() if there's no .strip() call
 		if (!hasStripCall) {
 			callExpr.replaceWithText(`${callExpr.getText()}.strict()`);
 		}

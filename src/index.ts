@@ -128,7 +128,6 @@ function displayHelpReference() {
 }
 
 export {
-	convertMyzodToZodV3String,
 	migrateMyzodToZodV3,
 	migrateMyzodToZodV3WithIssues,
 } from "./migrate.js";
