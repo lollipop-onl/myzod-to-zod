@@ -38,7 +38,7 @@ describe('myzod to zod conversion', () => {
     });
     
     // Additional test cases following TDD cycle - remove .skip when ready to implement
-    describe.skip('basic-number conversion', () => {
+    describe('basic-number conversion', () => {
         it('should convert basic number schema', async () => {
             const { myzod, zodv3 } = await readFixtures('basic-number');
             const migratedCode = convertMyzodToZodV3(myzod);
@@ -103,7 +103,7 @@ describe('myzod to zod conversion', () => {
         });
     });
     
-    describe.skip('map-string-to-length conversion', () => {
+    describe('map-string-to-length conversion', () => {
         it('should convert map to transform', async () => {
             const { myzod, zodv3 } = await readFixtures('map-string-to-length');
             const migratedCode = convertMyzodToZodV3(myzod);
@@ -357,11 +357,16 @@ async function validateSchemas(testCase: string) {
 }
 
 function convertMyzodToZodV3(myzodCode: string): string {
-    // TDD Step 4 (GREEN): Add withPredicate -> refine conversion
+    // Simple string-based transformation for basic myzod -> zod v3 migration
+    // Future: Will be enhanced with AST transformations using ts-morph
     return myzodCode
+        // Convert import statement: myzod -> zod
         .replace(/import myzod from 'myzod';/g, "import { z } from 'zod';")
+        // Convert namespace: myzod -> z
         .replace(/myzod\./g, 'z.')
-        .replace(/\.withPredicate\(/g, '.refine(');
+        // Convert method names: myzod API -> zod API
+        .replace(/\.withPredicate\(/g, '.refine(')
+        .replace(/\.map\(/g, '.transform(');
 }
 
 async function readFixtures(name: string) {
