@@ -31,9 +31,10 @@ npx vitest run test/scenarios.ts
 
 The project implements t-wada TDD principles with a **Red-Green-Refactor** cycle:
 
-1. **Currently Active**: `basic-string` and `predicate-string` conversions (4 passing tests)
-2. **Skipped Tests**: 40 additional test scenarios using `describe.skip()` 
-3. **Implementation Strategy**: Remove `.skip` when ready to implement each feature
+1. **Current Status**: **36/44 tests passing (81.8% completion)**
+2. **Implemented**: AST-based transformations with ts-morph
+3. **Remaining**: 8 complex test scenarios using `describe.skip()`
+4. **Implementation Strategy**: Remove `.skip` when ready to implement each feature
 
 ### Core Components
 
@@ -43,9 +44,10 @@ The project implements t-wada TDD principles with a **Red-Green-Refactor** cycle
 - Each test scenario has both `myzod.ts` and `zodv3.ts` with equivalent schemas
 
 **Conversion Engine**:
-- `convertMyzodToZodV3()`: String-based transformation function (currently basic implementation)
-- Uses simple regex replacements for basic conversions
-- Future: Will be enhanced with AST transformations using ts-morph
+- `src/migrate.ts`: Main AST transformation logic using ts-morph
+- `src/collect-imports.ts`: Import collection and analysis
+- `src/myzod-node.ts`: AST node identification utilities
+- `src/index.ts`: CLI entry point with file processing
 
 **Validation Testing**:
 - `validateSchemas()`: Runtime validation comparison between myzod and zod schemas
@@ -54,44 +56,54 @@ The project implements t-wada TDD principles with a **Red-Green-Refactor** cycle
 
 ### Migration Scope & Limitations
 
-Based on research in `reports/01_executive_summary.md`:
-- **90-95% automation achievable**
-- **Major challenges**: Import patterns, error handling structures, custom APIs
+Based on research in `reports/01_エグゼクティブサマリー.md`:
+- **81.8% completion achieved** (36/44 tests passing)
+- **Target: 90-95% automation achievable**
+- **Major challenges**: Type coercion, intersection types, complex literals, enums
 - **Cannot be 100% automated** due to fundamental API differences
 
 ### Current Implementation Status
 
-**✅ Implemented**:
+**✅ Implemented (36/44 tests passing)**:
 ```typescript
 // Import conversion
 import myzod from 'myzod' → import { z } from 'zod'
 
-// Namespace conversion  
+// Basic types: string, number, boolean, literal, object, array, union, tuple, record
 myzod.string() → z.string()
 
-// Predicate conversion
+// Method transformations
 .withPredicate() → .refine()
+.map() → .transform()
+.pattern() → .regex()
+
+// Constraints: .min(), .max(), .default(), .optional(), .nullable(), .partial()
+// Arrays with constraints, string patterns, object partials
 ```
 
-**⏳ Next TDD Targets** (remove `.skip` to implement):
-- `map-string-to-length`: `.map()` → `.transform()`
-- `basic-number`, `basic-boolean`, `basic-object`, etc.
+**⏳ Remaining Complex Cases (8/44)**:
+- `number-coerce`: Structural transformation `myzod.number().coerce()` → `z.coerce.number()`
+- `intersection-basic`: `myzod.intersection()` → `z.intersection()`
+- `literals-multiple`: `myzod.literals()` → `z.union([z.literal(), ...])`
+- `enum-basic`: `myzod.enum()` → `z.nativeEnum()`
 
 ## TDD Workflow
 
 To implement the next conversion feature:
 
-1. **Red Phase**: Remove `.skip` from target test case
-2. **Green Phase**: Add minimal implementation to `convertMyzodToZodV3()`
-3. **Refactor Phase**: Improve implementation quality
-4. **Commit**: Following conventional commit format
+1. **Red Phase**: Remove `.skip` from target test case in `test/scenarios.ts`
+2. **Green Phase**: Add AST transformation logic to `src/migrate.ts`
+3. **Refactor Phase**: Improve implementation quality and add edge cases
+4. **Commit**: Following conventional commit format with Japanese messages
 
 Example:
 ```typescript
 // In test/scenarios.ts, change:
-describe.skip('map-string-to-length conversion', () => {
+describe.skip('数値強制変換', () => {
 // To:
-describe('map-string-to-length conversion', () => {
+describe('数値強制変換', () => {
+
+// Then implement in src/migrate.ts with AST transformation
 ```
 
 ## Key Dependencies
@@ -104,6 +116,27 @@ describe('map-string-to-length conversion', () => {
 
 ## Important Files
 
-- `reports/`: Comprehensive analysis documents (migration strategy, API references)
-- `test/__scenarios__/`: All conversion test cases with expected inputs/outputs
-- `package.json`: Contains only essential test and typecheck commands
+- **`src/`**: AST-based codemod implementation with CLI
+- **`test/scenarios.ts`**: Main test suite with 44 comprehensive test cases (Japanese)
+- **`test/__scenarios__/*/`**: Test fixtures with README.md documentation (Japanese)
+- **`reports/`**: Comprehensive analysis documents (Japanese)
+- **`package.json`**: Contains test, build, and CLI commands
+
+## CLI Usage
+
+```bash
+# Build the codemod
+npm run build
+
+# Preview changes (dry run)
+node dist/index.js "src/**/*.ts"
+
+# Apply transformations
+node dist/index.js "src/**/*.ts" --write
+
+# Run tests
+npm test
+
+# Type checking
+npm run typecheck
+```
