@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { defineCommand, runMain } from "citty";
 import { description, name, version } from "../package.json";
 import { codemod } from ".";
