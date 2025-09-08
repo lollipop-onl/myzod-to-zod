@@ -10,7 +10,11 @@ import {
 /**
  * Main entry point for the myzod-to-zod codemod
  */
-export const codemod = async (pattern: string, shouldWrite: boolean) => {
+export const codemod = async (
+	pattern: string,
+	shouldWrite: boolean,
+	quiet?: boolean,
+) => {
 	try {
 		const project = new Project();
 		project.addSourceFilesAtPaths(pattern);
@@ -31,7 +35,9 @@ export const codemod = async (pattern: string, shouldWrite: boolean) => {
 
 		for (const sourceFile of sourceFiles) {
 			const filePath = sourceFile.getFilePath();
-			console.log(`Processing: ${filePath}`);
+			if (!quiet) {
+				console.log(`Processing: ${filePath}`);
+			}
 
 			const originalContent = sourceFile.getText();
 			const result = migrateMyzodToZodV3WithIssues(sourceFile);
@@ -43,15 +49,21 @@ export const codemod = async (pattern: string, shouldWrite: boolean) => {
 
 			if (shouldWrite) {
 				await writeFile(filePath, result.content, "utf-8");
-				console.log(`✅ Updated: ${filePath}`);
+				if (!quiet) {
+					console.log(`✅ Updated: ${filePath}`);
+				}
 			} else {
 				// Check if content changed
 				if (originalContent === result.content) {
-					console.log(`📄 No changes needed: ${filePath}`);
+					if (!quiet) {
+						console.log(`📄 No changes needed: ${filePath}`);
+					}
 				} else {
-					console.log(`--- ${filePath} ---`);
-					console.log(result.content);
-					console.log("");
+					if (!quiet) {
+						console.log(`--- ${filePath} ---`);
+						console.log(result.content);
+						console.log("");
+					}
 				}
 			}
 		}

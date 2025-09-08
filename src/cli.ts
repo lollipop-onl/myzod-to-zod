@@ -21,9 +21,13 @@ const main = defineCommand({
 				"Apply transformations to files (without this flag, only preview changes)",
 			type: "boolean",
 		},
+		quiet: {
+			description: "Suppress file transformation logs (only show summary)",
+			type: "boolean",
+		},
 	},
 	async setup({ args }) {
-		await codemod(args.filePattern, args.write);
+		await codemod(args.filePattern, args.write, args.quiet);
 	},
 });
 
