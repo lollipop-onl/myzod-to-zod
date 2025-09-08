@@ -184,9 +184,9 @@ const schema = myzod.object({
 // schema.parse({name: "John", extra: "value"}) -> ValidationError
 
 // Equivalent strict behavior in zod
-const schema = z.strictObject({
+const schema = z.object({
   name: z.string()
-});
+}).strict();
 // schema.parse({name: "John", extra: "value"}) -> ZodError
 
 // zod default behavior (strips unknown properties)
@@ -208,7 +208,7 @@ const schema = z.object({
 - **Migration impact**: Objects with extra properties will behave differently
 
 **Solution:**
-- Use `z.strictObject()` instead of `z.object()` to match myzod's default behavior
+- Use `z.object().strict()` instead of `z.object()` to match myzod's default behavior
 - Or use `z.object().passthrough()` for myzod's `.allowUnknownKeys()` behavior
 
 
@@ -234,7 +234,7 @@ After running the codemod, please:
 1. **Backup your code** (recommended)
 2. **Install zod v3** in your project:
    ```bash
-   npm install zod
+   npm install zod@3
    ```
 3. **Run the codemod**:
    ```bash
