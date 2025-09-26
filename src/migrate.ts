@@ -518,11 +518,28 @@ function transformMyzodReferences(sourceFile: SourceFile, myzodName: string) {
 		SyntaxKind.CallExpression,
 	);
 
-	// Transform property access expressions (myzod.string -> z.string)
+	// Transform property access expressions (myzod.string -> z.string, myzod.date -> z.coerce.date)
 	for (const propAccess of propertyAccesses) {
 		if (isMyzodReference(propAccess, myzodName)) {
 			const expression = propAccess.getExpression();
 			if (Node.isIdentifier(expression) && expression.getText() === myzodName) {
+				const methodName = propAccess.getName();
+
+				// Special case for date() - transform to z.coerce.date
+				if (methodName === "date") {
+					// Check if this is followed by a call expression
+					const parent = propAccess.getParent();
+					if (
+						Node.isCallExpression(parent) &&
+						parent.getExpression() === propAccess
+					) {
+						// Replace myzod.date() with z.coerce.date()
+						parent.replaceWithText("z.coerce.date()");
+						continue;
+					}
+				}
+
+				// Default case: myzod -> z
 				expression.replaceWithText("z");
 			}
 		}

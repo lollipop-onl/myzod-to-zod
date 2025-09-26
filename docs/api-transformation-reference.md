@@ -48,7 +48,7 @@ import { z } from 'zod'
 | `myzod.number()` | `z.number()` | Direct replacement |
 | `myzod.boolean()` | `z.boolean()` | Direct replacement |
 | `myzod.bigint()` | `z.bigint()` | Direct replacement |
-| `myzod.date()` | `z.date()` | Direct replacement |
+| `myzod.date()` | `z.coerce.date()` | Direct replacement with coercion |
 | `myzod.undefined()` | `z.undefined()` | Direct replacement |
 | `myzod.null()` | `z.null()` | Direct replacement |
 | `myzod.unknown()` | `z.unknown()` | Direct replacement |

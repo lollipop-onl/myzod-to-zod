@@ -259,6 +259,19 @@ describe("myzod から zod への変換", () => {
 		});
 	});
 
+	describe("基本日付の変換", () => {
+		it("基本的な日付スキーマを変換する", async () => {
+			const { myzod, zodv3 } = await readFixtures("basic-date");
+			const migratedCode = convertMyzodToZodV3String(myzod);
+			const { source, expected } = await formatCode(migratedCode, zodv3);
+			expect(source).toBe(expected);
+		});
+
+		it("同じバリデーション動作を維持する", async () => {
+			await validateSchemas("basic-date");
+		});
+	});
+
 	describe("基本交差型の変換", () => {
 		it("交差型スキーマを変換する", async () => {
 			const { myzod, zodv3 } = await readFixtures("intersection-basic");
